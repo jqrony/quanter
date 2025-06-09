@@ -1,52 +1,39 @@
 {
-  "title": "Snizzle",
-  "name": "snizzle",
-  "version": "1.8.0",
-  "description": "A pure-JavaScript fast, CSS selector engine program to be easily select DOM-Elements",
-  "types": "dist/snizzle.js",
-  "main": "dist/snizzle.js",
+  "title": "Quanter",
+  "name": "quanter",
+  "version": "1.0.2",
+  "description": "A Pure-JavaScript, CSS selector engine designed to be easily select DOM-Elements.",
+  "main": "dist/quanter.js",
+  "module": "export/quanter.js",
   "scripts": {
-    "build": "npm install && grunt",
-    "start": "grunt start"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jqrony/snizzle.git"
-  },
-  "directories": {
-    "dist": "dist"
+    "url": "git+https://github.com/jqrony/quanter.git"
   },
   "keywords": [
-    "snizzle",
-    "sizzle",
-    "hot-selector",
-    "sizzline",
-    "CSS",
-    "selectors",
-    "pseudo",
-    "jqrony",
-    "library",
+    "quanter",
     "javascript",
-    "css-select"
+    "CSS",
+    "selector",
+    "jqrony"
   ],
-  "author": "Shahzada Modassir (https://github.com/jqrony/snizzle/blob/main/AUTHORS.txt)",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/jqrony/snizzle/issues"
+  "homepage": "https://github.com/jqrony/quanter#readme",
+  "author": {
+    "name": "Indian Modassir",
+    "url": "https://github.com/jqrony/quanter/blob/1.0.2/AUTHORS.txt"
   },
-  "funding": [
-    {
-      "type": "Github",
-      "url": "https://github.com/shahzadamodassir"
-    },
-    {
-      "type": "Patreon",
-      "url": "https://patreon.com/shahzadamodassir"
-    },
-    {
-      "type": "Opencollective",
-      "url": "https://opencollective.com/shahzadamodassir"
-    }
+  "license": "MIT",
+  "files": [
+    "AUTHORS",
+    "LICENSE",
+    "dist/quanter.js",
+    "dist/quanter.min.js",
+    "export/quanter.js",
+    "export/quanter.min.js"
   ],
-  "homepage": "https://github.com/jqrony/snizzle#readme"
+  "bugs": {
+    "url": "https://github.com/jqrony/quanter/issues"
+  }
 }

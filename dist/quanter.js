@@ -1,5 +1,5 @@
 /**
- * Quanter CSS Selector Engine v1.0.2
+ * Quanter CSS Selector Engine v1.0.0
  * https://github.com/jqrony/quanter
  * 
  * @license MIT License
@@ -11,7 +11,7 @@
 // Catches errors and disallows unsafe actions
 "use strict";
 
-var version = "1.0.2",
+var version = "1.0.0",
   i,
   support,
   unique,
@@ -1421,9 +1421,9 @@ typeof define === 'function' && define.amd ?
   define(function() {
     return Quanter;
   // Expose Quanter identifiers, Even in AMD and CommonJS for browser emulators
-  }) : (window.Quanter = Quanter);
+  }) : (typeof module === "object" ? module.exports = Quanter : window.Quanter = Quanter);
 
 
 
 return Quanter;
-})(window);
+})(typeof window !== 'undefined' ? window : this);

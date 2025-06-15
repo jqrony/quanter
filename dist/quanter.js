@@ -1,5 +1,5 @@
 /**
- * Quanter CSS Selector Engine v1.6.0
+ * Quanter CSS Selector Engine v1.6.1
  * https://github.com/jqrony/quanter
  * 
  * @license MIT License
@@ -11,7 +11,7 @@
 // Catches errors and disallows unsafe actions
 "use strict";
 
-var version = "1.6.0",
+var version = "1.6.1",
   i,
   support,
   unique,

@@ -1,10 +1,9 @@
 {
   "title": "Quanter",
   "name": "quanter",
-  "version": "1.0.2",
+  "version": "1.5.0",
   "description": "A Pure-JavaScript, CSS selector engine designed to be easily select DOM-Elements.",
   "main": "dist/quanter.js",
-  "module": "export/quanter.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -22,16 +21,14 @@
   "homepage": "https://github.com/jqrony/quanter#readme",
   "author": {
     "name": "Indian Modassir",
-    "url": "https://github.com/jqrony/quanter/blob/1.0.2/AUTHORS.txt"
+    "url": "https://github.com/jqrony/quanter/blob/1.5.0/AUTHORS.txt"
   },
   "license": "MIT",
   "files": [
     "AUTHORS",
     "LICENSE",
     "dist/quanter.js",
-    "dist/quanter.min.js",
-    "export/quanter.js",
-    "export/quanter.min.js"
+    "dist/quanter.min.js"
   ],
   "bugs": {
     "url": "https://github.com/jqrony/quanter/issues"

@@ -1,17 +1,17 @@
 /**
- * Quanter CSS Selector Engine v1.0.0
+ * Quanter CSS Selector Engine v1.5.0
  * https://github.com/jqrony/quanter
  * 
  * @license MIT License
  * @author Indian Modassir
- * Date: 23 April 2025 11:52 GMT+0530
+ * Date: 11 June 2025 11:52 GMT+0530
  */
 (function(window) {
 
 // Catches errors and disallows unsafe actions
 "use strict";
 
-var version = "1.0.0",
+var version = "1.5.0",
   i,
   support,
   unique,
@@ -20,6 +20,7 @@ var version = "1.0.0",
   isXML,
   tokenize,
   select,
+  nodeName,
 	contains,
   flat,
   _quanter,
@@ -244,12 +245,13 @@ function Quanter(selector, context, results, seed) {
  * It ensures case-insensitive handling of the tag name and handles undefined or null elements gracefully.
  * 
  * @param {HTMLElement} elem [required]
- * @returns {String|Boolean} The nodeName of the elem,
+ * @param {String}      name [required]
+ * @returns {Boolean} The matched nodeName of the name,
  * or false if the element has no nodeName exists.
  */
-function nodeName(elem) {
-  return elem.nodeName && elem.nodeName.toLowerCase();
-}
+nodeName = Quanter.nodeName = function(elem, name) {
+  return elem.nodeName && elem.nodeName.toLowerCase() === name.toLowerCase();
+};
 
 /**
  * Sets document-related variables once based on the current document.
@@ -345,6 +347,7 @@ setDocument = Quanter.setDocument = function(node) {
   // Check if querySelectorAll
   support.QSA = rnative.test(document.querySelectorAll);
 
+  /* CLASS */
   Expr.find["CLASS"] = support.getByClass ?
     function(className, context) {
       if (documentIsHTML) {
@@ -353,8 +356,9 @@ setDocument = Quanter.setDocument = function(node) {
     } :
     function(className, context) {
       return Quanter(className, context);
-    }
+    };
 
+  /* CHILDREN */
   Expr.find["CHILDREN"] = support.children ?
     function(context) {
       return slice.call(context.children);
@@ -373,6 +377,7 @@ setDocument = Quanter.setDocument = function(node) {
       return tmp;
     };
 
+  /* TAG */
   Expr.find["TAG"] = support.getByTag ?
     function(tag, context) {
       return context.getElementsByTagName(tag);
@@ -398,15 +403,17 @@ setDocument = Quanter.setDocument = function(node) {
 			return results;
     };
 
+  /* ELEMENTS */
   Expr.find["ELEMENTS"] = function(elem) {
     return slice.call(Expr.find["TAG"]("*", elem));
   };
 
+  /* ID */
   if (support.getById) {
     Expr.filter["ID"] = function(id) {
-      return eachMap(function(elem) {
+      return function(elem) {
         return elem.getAttribute("id") === id;
-      });
+      };
     };
     Expr.find["ID"] = function(id, context) {
       var elem = documentIsHTML && context.getElementById(id);
@@ -414,10 +421,10 @@ setDocument = Quanter.setDocument = function(node) {
     };
   } else {
     Expr.filter["ID"] = function(id) {
-      return eachMap(function(elem) {
+      return function(elem) {
         var node = invoke(elem, "getAttributeNode", id);
         return node && node.value === id;
-      });
+      };
     };
 
     // Support: IE 6 - 7 only
@@ -704,7 +711,7 @@ function extendPseudo(pseudo, fn, markable) {
  */
 function addCombinators(src) {
   var tmp = [], {dir, type, method} = src, once = !!src.once;
-  return eachMap(function(elem) {
+  return function(elem) {
     if (once || method) {
       return once ? elem[dir] : Expr[method][type](elem);
     } else {
@@ -713,7 +720,7 @@ function addCombinators(src) {
       }
       return tmp;
     }
-  }, true);
+  };
 }
 
 /**
@@ -746,11 +753,10 @@ function positionalPseudo(fn) {
  * @param {Boolean} not 
  */
 function attrPseudo(expr, attr, not) {
-  return eachMap(function(elem) {
-    var name = nodeName(elem);
-    return (typeof expr === "string" ? name === expr : expr.test(name)) &&
+  return function(elem) {
+    return (typeof expr === "string" ? nodeName(elem, expr) : expr.test(name)) &&
       !!elem[attr] === !not;
-  });
+  };
 }
 
 /**
@@ -761,9 +767,9 @@ function attrPseudo(expr, attr, not) {
  * @returns inputs or buttons element
  */
 function inputButtonPseudo(type, tag) {
-  return eachMap(function(elem) {
-    return nodeName(elem) === tag && elem.type === type;
-  });
+  return function(elem) {
+    return nodeName(elem, tag) && elem.type === type;
+  };
 }
 
 /**
@@ -774,11 +780,11 @@ function inputButtonPseudo(type, tag) {
  * @returns 
  */
 function hiddenPseudo(hidden) {
-  return eachMap(function(elem) {
+  return function(elem) {
     var visibility = style(elem, "visibility"),
 				display = style(elem, "display");
 			return (visibility === "hidden" || display === "none" || elem.hidden) === hidden;
-  });
+  };
 }
 
 /**
@@ -791,9 +797,9 @@ function hiddenPseudo(hidden) {
 function filterPseudo(not) {
   return markFunction(function(selector) {
     var target = Quanter.matches(selector);
-    return eachMap(function(elem) {
+    return function(elem) {
       return (indexOf.call(target, elem) > -1) === not;
-    });
+    };
   });
 }
 
@@ -805,9 +811,9 @@ function filterPseudo(not) {
  * @returns 
  */
 function formPseudo(method) {
-  return eachMap(function(elem) {
-    return nodeName(elem) === "form" && elem.method.toLowerCase() === method;
-  });
+  return function(elem) {
+    return nodeName(elem, "form") && elem.method.toLowerCase() === method;
+  };
 }
 
 /**
@@ -818,13 +824,13 @@ function formPseudo(method) {
  * @returns 
  */
 function rangePseudo(inRange) {
-  return eachMap(function(elem) {
-    var isNumInput = nodeName(elem) === "input" && elem.type === "number",
+  return function(elem) {
+    var isNumInput = nodeName(elem, "input") && elem.type === "number",
       val = +elem.value,
       min = +elem.min,
       max = +elem.max;
     return isNumInput && (min <= val && max >= val) === inRange;
-  });
+  };
 }
 
 /**
@@ -835,9 +841,9 @@ function rangePseudo(inRange) {
  * @returns 
  */
 function validPseudo(isValid) {
-  return eachMap(function(elem) {
+  return function(elem) {
     return rnative.test(elem.checkValidity) && elem.checkValidity() === isValid;
-  });
+  };
 }
 
 /**
@@ -847,7 +853,7 @@ function validPseudo(isValid) {
  */
 function disabledPseudo(disabled) {
   // Known :disabled false positives: fieldset[disabled] > legend:nth-of-type(n+2) :can-disable
-  return eachMap(function(elem) {
+  return function(elem) {
     // Only certain elements can match :enabled or :disabled
     // https://html.spec.whatwg.org/multipage/scripting.html#selector-enabled
     // https://html.spec.whatwg.org/multipage/scripting.html#selector-disabled
@@ -880,18 +886,21 @@ function disabledPseudo(disabled) {
   
     // Remaining elements are neither :enabled nor :disabled
     return false;
-  });
+  };
 }
 
 Expr = Quanter.selectors = {
   // createPseudo to create arg based markable :pseudo
   createPseudo: markFunction,
-  // extendPseudo to extend new none-existable :pseudo
-  extendPseudo: extendPseudo,
+
   combinators: {},
   attrHandle: {},
   find: {},
   match: matchExpr,
+
+  // extendPseudo to extend new none-existable :pseudo
+  extendPseudo: extendPseudo,
+
   relative: {
     "+": {dir: "nextElementSibling", once: true},
 		"<": {dir: "parentNode", once: true},
@@ -899,25 +908,31 @@ Expr = Quanter.selectors = {
     " ": {type: "ELEMENTS", method: "find"},
 		">": {type: "CHILDREN", method: "find"}
   },
+
   preFilter: {
     "XPATH": function(match) {
       match[1] = match[0];
       return match.slice(0, 2);
     },
+
     "CLASS": function(match) {
       return match.slice(0, 2);
     },
+
     "ATTR": function(match) {
       // Move the given value to match[3] whether quoted or unquoted
 			match[3] = (match[3] || match[4] || match[5] || "");
 			return match.slice(0, 4);
     },
+
     "TAG": function(match) {
       return match.slice(0, 2);
     },
+
     "ID": function(match) {
       return match.slice(0, 2);
     },
+
     "CHILD": function(match) {
       /* matches from matchExpr["CHILD"]
 			  1 type (only|nth|...)
@@ -956,9 +971,10 @@ Expr = Quanter.selectors = {
 			return match.slice(0, 3);
     }
   },
+
   filter: {
     "XPATH": markFunction(function(expr) {
-      return eachMap(function(elem) {
+      return function(elem) {
         try {
           // Support: Chrome, Firefox, Edge, Safari, Opera, IE9+
 		      // https://developer.mozilla.org/en-US/docs/Web/XPath
@@ -975,24 +991,27 @@ Expr = Quanter.selectors = {
         } catch(e) {
           Quanter.error("unsupport expression: " + expr);
         }
-      });
+      };
     }),
+
     "TAG": markFunction(function(tagName) {
       tagName = tagName.toLowerCase();
-      return eachMap(function(elem) {
-        return tagName === "*" ? true : nodeName(elem) === tagName;
-      });
+      return function(elem) {
+        return tagName === "*" ? true : nodeName(elem, tagName);
+      };
     }),
+
     "CLASS": markFunction(function(className) {
-      return eachMap(function(elem) {
+      return function(elem) {
         var pattern;
 				return (pattern=new RegExp("(^|" + whitespace + ")" +
 					className + "(" + whitespace + ")|$")) &&
 					pattern.test(attrVal(elem, "class") || elem.className || "");
-      });
+      };
     }),
+
     "ATTR": markFunction(function(name, operator, check) {
-      return eachMap(function(elem) {
+      return function(elem) {
         var result = Quanter.attr(elem, name);
 
 				if (result == null) {
@@ -1017,8 +1036,9 @@ Expr = Quanter.selectors = {
 					operator === "|=" ? result === check || result.slice(0, check.length + 1) === check + "-" :
 					false;
 				/* eslint-enable max-len */
-      });
+      };
     }),
+
     "CHILD": markFunction(function(type, what, _arg, expr) {
       var simple = type.slice(0, 3) !== "nth",
         forward = type.slice(-4) !== "last",
@@ -1036,10 +1056,9 @@ Expr = Quanter.selectors = {
 			 * :only-of-type
 			 * :nth-last-child(n)
 			 */
-      return eachMap(function(elem) {
+      return function(elem) {
         var node, start,
-          dir = simple !== forward ? "nextSibling" : "previousSibling",
-          name = nodeName(elem);
+          dir = simple !== forward ? "nextSibling" : "previousSibling";
         
         // Take advantage of querySelectorAll support
         if (support.QSA) {
@@ -1054,7 +1073,7 @@ Expr = Quanter.selectors = {
             while(dir) {
               node = elem;
               while((node = node[dir])) {
-                if (ofType ? nodeName(node) === name : node.nodeType === 1) {
+                if (ofType ? nodeName(node, elem.nodeName) : node.nodeType === 1) {
                   return false;
                 }
               }
@@ -1064,8 +1083,9 @@ Expr = Quanter.selectors = {
             return true;
           }
         }
-      });
+      };
     }),
+
     "PSEUDO": markFunction(function(pseudo, arguemnt) {
 
       // pseudo-class names are case-insensitive
@@ -1083,31 +1103,37 @@ Expr = Quanter.selectors = {
 				fn;
     })
   },
+
   pseudos: {
-    "viewport": eachMap(function(elem) {
-      return nodeName(elem) === "meta" && elem.name === "viewport";
-    }),
-    "theme": eachMap(function(elem) {
-      return nodeName(elem) === "meta" && rthemes.test(elem.name);
-    }),
+    "viewport": function(elem) {
+      return nodeName(elem, "meta") && elem.name === "viewport";
+    },
+
+    "theme": function(elem) {
+      return nodeName(elem, "meta") && rthemes.test(elem.name);
+    },
+
     "contains": markFunction(function(text) {
-      return eachMap(function(elem) {
+      return function(elem) {
         return (elem.textContent || getText(elem)).indexOf(text) > -1;
-      });
+      };
     }),
+
     "icontains": markFunction(function(text) {
-      return eachMap(function(elem) {
+      return function(elem) {
         return (
           elem.textContent ||
           getText(elem) || ""
         ).toLowerCase().indexOf(text.toLowerCase()) > -1;
-      });
+      };
     }),
+
     /* Miscellaneous */
-    "target": eachMap(function(elem) {
+    "target": function(elem) {
       var hash = window.location && window.location.hash;
       return hash && hash.slice(1) === elem.id;
-    }),
+    },
+
     // "Whether an element is represented by a :lang() selector
 		// is based solely on the element's language value
 		// being equal to the identifier C,
@@ -1125,7 +1151,7 @@ Expr = Quanter.selectors = {
       // change case lang toLowerCase
       lang = (lang || "").toLowerCase();
 
-      return eachMap(function(elem) {
+      return function(elem) {
         do {
           var elemLang;
           if ((elemLang = documentIsHTML ? elem.lang : attrVal(elem, "xml:lang") || attrVal(elem, "lang"))) {
@@ -1136,8 +1162,9 @@ Expr = Quanter.selectors = {
         }
         while((elem = elem.parentNode) && elem.nodeType === 1);
         return false;
-      });
+      };
     }),
+
     /* Boolean and Inline properties */
     "disabled": disabledPseudo(true),
     "enabled": disabledPseudo(false),
@@ -1148,6 +1175,7 @@ Expr = Quanter.selectors = {
     "post": formPseudo("post"),
     "has": filterPseudo(true),
     "filter": filterPseudo(false),
+
     /* CSS3 predefine default pseudo */
     "indeterminate": attrPseudo("input", "indeterminate"),
     "required": attrPseudo("input", "required"),
@@ -1162,44 +1190,54 @@ Expr = Quanter.selectors = {
     "valid": validPseudo(true),
     "autoplay": attrPseudo(rplayable, "autoplay"),
     "optional": attrPseudo("input", "required", true),
-    "active": eachMap(function(elem) {
+
+    "active": function(elem) {
       return elem.activeElement;
-    }),
-    "inline": eachMap(function(elem) {
+    },
+
+    "inline": function(elem) {
       return ritags.test(elem.nodeName);
-    }),
-    "root": eachMap(function(elem) {
+    },
+
+    "root": function(elem) {
       return elem === docElem;
-    }),
-    "focus": eachMap(function(elem) {
+    },
+
+    "editable": function(elem) {
+      return elem.contentEditable === "true";
+    },
+
+    "focus": function(elem) {
       return elem === elem.activeElement ||
         (!document.hasFocus && document.hasFocus()) && !!(elem.type || elem.href || ~elem.tabIndex);
-    }),
-    "checked": eachMap(function(elem) {
+    },
+
+    "checked": function(elem) {
       // In CSS3, :checked should return both checked and selected elements
 			// http://www.w3.org/TR/2011/REC-css3-selectors-20110929/#checked
-      var nodeName = nodeName(elem);
-      return (nodeName === "input" && !!elem.checked) || (nodeName === "option" && !!elem.selected);
-    }),
-    "offset": eachMap(function(elem) {
+      return (nodeName(elem, "input") && !!elem.checked) || (nodeName(elem, "option") && !!elem.selected);
+    },
+
+    "offset": function(elem) {
       return style(elem, "position") !== "static";
-    }),
-    "selected": eachMap(function(elem) {
+    },
+
+    "selected": function(elem) {
       // Accessing this property makes selected-by-default
 			// options in Safari work properly
 			// eslint-disable-next-line no-unused-expressions
       elem.parentNode && elem.parentNode.selectedIndex;
 			return elem.selected === true;
-    }),
-    "parent": function(seed) {
-      return eachMap(function(elem) {
-        return indexOf.call(Expr.pseudos.empty(seed), elem) === -1;
-      })(seed);
     },
+
+    "parent": function(elem) {
+      return !Expr.pseudos["empty"](elem)
+    },
+
     /* Contents */
-    "empty": eachMap(function(elem) {
+    "empty": function(elem) {
       // http://www.w3.org/TR/selectors/#empty-pseudo
-			// :empty is negated by element (1) or content nodes (text:3; cdata:4; Clazzer ref:5),
+			// :empty is negated by element (1) or content nodes (text:3; CData:4; Quanter ref:5),
 			// but not by others (comment: 8; processing instruction: 7; etc.)
 			// nodeType < 6 works because attributes (2) do not appear as children
       for(elem = elem.firstChild; elem; elem = elem.nextSibling) {
@@ -1208,52 +1246,63 @@ Expr = Quanter.selectors = {
 				}
 			}
 			return true;
-    }),
+    },
+
     /* Element/input types and Headers */
-    "header": eachMap(function(elem) {
+    "header": function(elem) {
       return rheader.test(elem.nodeName);
-    }),
-    "input": eachMap(function(elem) {
+    },
+
+    "input": function(elem) {
       return rinputs.test(elem.nodeName);
-    }),
-    "button": eachMap(function(elem) {
-      var name = nodeName(elem);
-      return name === "button" || (name === "input" && elem.type === "button");
-    }),
-    "text": eachMap(function(elem) {
+    },
+
+    "button": function(elem) {
+      return nodeName(elem, "button") || (nodeName(elem, "input") && elem.type === "button");
+    },
+
+    "text": function(elem) {
       var attr;
-      return nodeName(elem) === "input" &&
+      return nodeName(elem, "input") &&
         elem.type === "text" &&
         // Support: IE<8
 				// New HTML5 attribute values (e.g., "search") appear with type==="text"
         ((attr = attrVal(elem, "type")) == null || attr.toLowerCase() === "text");
-    }),
+    },
+
     "named": markFunction(function(name) {
-      return eachMap(function(elem) {
+      return function(elem) {
         return name ? elem.name === name : elem.hasAttribute(name);
-      });
+      };
     }),
-    "animated": eachMap(function(elem) {
-      return nodeName(elem) === "marquee" || !rnoAnimation.test(style(elem, "animation"));
-    }),
+
+    "animated": function(elem) {
+      return nodeName(elem, "marquee") || !rnoAnimation.test(style(elem, "animation"));
+    },
+
     /* Position-in-collection pseudos */
     "first": positionalPseudo(function() {
       return [0];
     }),
+
     "last": positionalPseudo(function(_, length) {
       return [length - 1];
     }),
+
     "eq": markFunction(function(i) {
       return positionalPseudo(function(_, length) {
         return [i < 0 ? i + length : i];
       });
     }),
-    "odd": eachMap(function(_, i) {
+
+    "odd": function(_, i) {
       return i % 2;
-    }),
-    "even": eachMap(function(_, i) {
+    },
+
+    "even": function(_, i) {
       return (i + 1) % 2;
-    }),
+    },
+
     "lt": markFunction(function(i) {
       return positionalPseudo(function(matchesIndex, length) {
         i = i < 0 ? ~~i + length : i > length ? length : i;
@@ -1261,6 +1310,7 @@ Expr = Quanter.selectors = {
 				return matchesIndex.reverse();
       });
     }),
+
     "gt": markFunction(function(i) {
       return positionalPseudo(function(matchesIndex, length) {
         i = i < 0 ? ~~i + length : i > length ? length : i;
@@ -1268,9 +1318,10 @@ Expr = Quanter.selectors = {
 				return matchesIndex;
       });
     }),
-    "playing": eachMap(function(elem) {
+
+    "playing": function(elem) {
       return rplayable.test(elem.nodeName) && !(elem.paused && elem.muted);
-    })
+    }
   }
 };
 
@@ -1285,8 +1336,29 @@ for(i in Expr.relative) {
 for(i of ["submit", "reset"]) {
   Expr.pseudos[i] = inputButtonPseudo(i, "button");
 }
+
 for(i of ["radio", "checkbox", "file", "password", "email", "color", "number"]) {
   Expr.pseudos[i] = inputButtonPseudo(i, "input");
+}
+
+/**
+ * @internal
+ * _uniqueSort for advance sorting elements with unique value
+ * 
+ * @param {Array} results An target array
+ * @param {Array} tmp     A compare array
+ * @returns A shortest array with includes the unique value
+ */
+function _uniqueSort(results, tmp) {
+  var all = Expr.find["TAG"]("*", document);
+
+  eachMap(function(elem) {
+    if (indexOf.call(tmp, elem) > -1) {
+      results.push(elem);
+    }
+  })(all);
+
+  return results;
 }
 
 tokenize = Quanter.tokenize = function(selector) {
@@ -1353,16 +1425,24 @@ tokenize = Quanter.tokenize = function(selector) {
 };
 
 /**
- * @param {String}  selector
- * @param {Element} context
- * @param {Array}   [results]
+ * Selects DOM elements based on a CSS selector string.
+ * This function acts similarly to querySelectorAll but includes support for custom tokenization,
+ * filtering, and combinator logic as defined in the `Expr` object.
+ * 
+ * @param {String}  selector A CSS-like selector string used to identify DOM elements.
+ * @param {Element} context  The root DOM node within which to perform the search.
+ * @param {Array}   [results] An optional array to which the matched elements will be added.
  * @param {Array}   [seed] A set of elements to match against
+ * 
+ * @returns {Array} Unique DOM elements matching the selector in the given context.
  */
 select = Quanter.select = function(selector, context, results, seed) {
   var j, tokens, token, fn, src, type,
     match = tokenize(selector),
-    i = match.length;
+    i = match.length,
+    tmp = [];
 
+  // Force result to be an array
   results = results || [];
 
   while(i--) {
@@ -1383,15 +1463,17 @@ select = Quanter.select = function(selector, context, results, seed) {
     // Start selecting
     while((token = tokens[j++])) {
       type = token.type;
+      fn = Expr.combinators[type];
 
-      src = (fn = Expr.combinators[type]) ?
-        fn(src) : Expr.filter[type].apply(null, token.matches)(src);
+      src = eachMap(function(elem) {
+        return (fn || Expr.filter[type].apply(null, token.matches)).apply(elem, arguments);
+      }, !!fn)(src);
     }
-
-    push.apply(results, src);
+    
+    push.apply(tmp, src);
   }
 
-  return Quanter.uniqueSort(results);
+  return _uniqueSort(results, tmp);
 };
 
 /**
@@ -1410,14 +1492,21 @@ Quanter.version = version;
 
 _quanter = window.Quanter;
 
+/**
+ * Restores the original value of `window.Quanter` if it was overwritten,
+ * and returns the current Quanter object.
+ * Useful when avoiding conflicts with other libraries using the same global name.
+ * 
+ * @returns {Object} The current Quanter object.
+ */
 Quanter.noConflict = function() {
 	window.Quanter === Quanter && (window.Quanter = _quanter);
 	return Quanter;
-}
+};
 
 // Register as named AMD module,
 // since Quanter can be concatenated with other files that may use define
-typeof define === 'function' && define.amd ?
+typeof define === "function" && define.amd ?
   define(function() {
     return Quanter;
   // Expose Quanter identifiers, Even in AMD and CommonJS for browser emulators
@@ -1426,4 +1515,4 @@ typeof define === 'function' && define.amd ?
 
 
 return Quanter;
-})(typeof window !== 'undefined' ? window : this);
+})(window);

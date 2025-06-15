@@ -19,7 +19,7 @@
 Quanter has introduced new features for advanced DOM element selection. The library now includes support for XPath, allowing users to select DOM elements using XPath expressions.
 
 ## Contribution Guides
-In order to build Quanter, you should have Node.js/npm latest and git 1.0.2 or later (earlier versions might work OK, but are not tested).
+In order to build Quanter, you should have Node.js/npm latest and git 1.5.0 or later (earlier versions might work OK, but are not tested).
 
 For Windows you have to download and install git and [Node.js](https://nodejs.org/download/).
 
@@ -42,7 +42,7 @@ As an alternative you can use the Yarn CLI command:
 ### Quanter information
 For information on how to get started and how to use Quanter, please see [Quanter's](https://github.com/jqrony/quanter) [documentation](https://github.com/jqrony/quanter/wiki). For source files and issues, please visit the Quanter repository.
 
-If upgrading, please see the blog post for [release 1.0.2](https://github.com/jqrony/quanter/releases/tag/1.6.0). This includes notable differences from the previous version and a more readable changelog.
+If upgrading, please see the blog post for [release 1.5.0](https://github.com/jqrony/quanter/releases/tag/1.6.0). This includes notable differences from the previous version and a more readable changelog.
 
 ## Including Quanter
 Below are some of the most common ways to include Quanter
@@ -51,7 +51,7 @@ Below are some of the most common ways to include Quanter
 #### Script tag
 ```html
 <!--including Quanter (recomended) HTML document in head section -->
-<script src="https://cdn.jsdelivr.net/npm/quanter@1.0.2/dist/quanter.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quanter@1.5.0/dist/quanter.min.js"></script>
 ```
 
 ## Usage

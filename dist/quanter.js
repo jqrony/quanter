@@ -1,5 +1,5 @@
 /**
- * Quanter CSS Selector Engine v1.5.0
+ * Quanter CSS Selector Engine v1.6.0
  * https://github.com/jqrony/quanter
  * 
  * @license MIT License
@@ -11,7 +11,7 @@
 // Catches errors and disallows unsafe actions
 "use strict";
 
-var version = "1.5.0",
+var version = "1.6.0",
   i,
   support,
   unique,
@@ -1233,6 +1233,10 @@ Expr = Quanter.selectors = {
     "parent": function(elem) {
       return !Expr.pseudos["empty"](elem)
     },
+
+    "xpath": markFunction(function(expr) {
+      return Expr.filter["XPATH"](expr);
+    }),
 
     /* Contents */
     "empty": function(elem) {

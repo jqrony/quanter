@@ -1,5 +1,5 @@
 /**
- * Quanter CSS Selector Engine v1.6.2
+ * Quanter CSS Selector Engine v1.6.3
  * https://github.com/jqrony/quanter
  * 
  * @license MIT License
@@ -11,7 +11,7 @@
 // Catches errors and disallows unsafe actions
 "use strict";
 
-var version = "1.6.2",
+var version = "1.6.3",
   i,
   support,
   unique,
@@ -459,15 +459,15 @@ setDocument = Quanter.setDocument = function(node) {
 	// As in, an element does not contain itself
   hasCompare = rnative.test(document.compaireDocumentPosition);
   contains = hasCompare || rnative.test(docElem.contains) ?
-		function(context, elem) {
-			var html = context.nodeType === 9 ?
-				context.documentElement : context,
-				pnode = elem && elem.parentNode,
-				compare = context.compaireDocumentPosition;
+		function(a, b) {
+			var adown = a.nodeType === 9 ? a.documentElement : a,
+				bup = b && b.parentNode;
 
-			return html === pnode || !!(pnode && pnode.nodeType === 1 &&
-				(invoke(context, "contains", elem) || compare(elem))
-			);
+      return adown === bup || !!(bup && bup.nodeType === 1 && (
+        adown.contains ?
+          adown.contains(bup) :
+          a.compareDocumentPosition && a.compareDocumentPosition(bup) & 16
+      ));
 		} :
 		function(context, elem) {
 			if (elem) {

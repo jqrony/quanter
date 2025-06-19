@@ -1,6 +1,10 @@
 # Release Notes
 
-## [v1.6.2](https://github.com/jqrony/quanter/compare/v1.6.1...v1.6.2) - 20-16-2025
+## [v1.6.3](https://github.com/jqrony/quanter/compare/v1.6.2...v1.6.3) - 20-06-2025
+
+* Fix an issue in `Quanter.contains` where this method not proper working showing error `contains` not a function [@indianmodassir](https://github.com/indianmodassir)
+
+## [v1.6.2](https://github.com/jqrony/quanter/compare/v1.6.1...v1.6.2) - 20-06-2025
 
 * Fix an issue in `Quanter(selector, context, results, seed)` where the `context` parameter was not working correctly. [@indianmodassir](https://github.com/indianmodassir)
 

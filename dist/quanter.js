@@ -1,17 +1,17 @@
 /**
- * Quanter CSS Selector Engine v1.6.1
+ * Quanter CSS Selector Engine v1.6.2
  * https://github.com/jqrony/quanter
  * 
  * @license MIT License
  * @author Indian Modassir
- * Date: 11 June 2025 11:52 GMT+0530
+ * Date: 20 June 2025 01:17 GMT+0530
  */
 (function(window) {
 
 // Catches errors and disallows unsafe actions
 "use strict";
 
-var version = "1.6.1",
+var version = "1.6.2",
   i,
   support,
   unique,
@@ -213,7 +213,7 @@ function Quanter(selector, context, results, seed) {
       // QSA Support
       // Take advantage of querySelectorAll
       if (support.QSA) {
-        return push.apply(results, selectAll(selector)), results;
+        return push.apply(results, selectAll(selector, context)), results;
       }
 
       // If the QSA not support, try using a "get*By*" DOM method
@@ -229,7 +229,7 @@ function Quanter(selector, context, results, seed) {
       } else if (match) {
         // Type/TAG Selector or CLASS Selector
         s = match[2] || match[3];
-        elem = document["getElementsBy" + (match[2] ? "Tag" : "Class") + "Name"](s);
+        elem = context["getElementsBy" + (match[2] ? "Tag" : "Class") + "Name"](s);
         push.apply(results, elem);
         return results;
       }

@@ -1,20 +1,20 @@
 /**
- * Quanter CSS Selector Engine v1.6.3
+ * Quanter CSS Selector Engine v2.0.0
  * https://github.com/jqrony/quanter
  * 
  * @license MIT License
  * @author Indian Modassir
- * Date: 20 June 2025 01:17 GMT+0530
+ * Date: 21 June 2025 06:21 GMT+0530
  */
 (function(window) {
 
 // Catches errors and disallows unsafe actions
 "use strict";
 
-var version = "1.6.3",
+var version = "2.0.0",
   i,
   support,
-  unique,
+  uniqueSort,
   Expr,
   getText,
   isXML,
@@ -22,9 +22,7 @@ var version = "1.6.3",
   select,
   nodeName,
 	contains,
-  flat,
   _quanter,
-  eachMap,
   attrVal,
 
   // Local document vars
@@ -133,17 +131,6 @@ var version = "1.6.3",
 			whitespace + "*(\\d+)|))" + whitespace + "*\\)|)", "i"),
     "XPATH": /^\/([^,]+)$/
   };
-
-/**
- * @internal
- * Returns a new array with all sub-array elements concatenated into it recursively up to the specified depth.
- * 
- * @param {Array} array An Array to flat
- * @returns {Array} New flatten array
- */
-flat = function(array) {
-  return arr.flat ? arr.flat.call(array) : concat.apply([], array);
-};
 
 /**
  * @internal
@@ -501,20 +488,38 @@ isXML = Quanter.isXML = function(elem) {
 
 /**
  * This method removes duplicate values from given array
+ * and sort element with sortOrder
  * 
  * @param {Array} results [required]
  * @returns {Array} Returns a unique array
  */
-unique = Quanter.unique = function(results) {
-  var i = 0, len = results.length,
-    copy = results.slice(0);
-    results.length = 0;
+uniqueSort = Quanter.uniqueSort = function(results) {
+  var elem, hasElem,
+    elems = Expr.find["TAG"]("*", document),
+    i = 0,
+    len = results.length,
+    copy = results.slice(0).sort(),
+    l = elems.length;
 
+  results.length = 0;
+
+  // Go through for sort none-HTMLElements collection
   for(; i < len; i++) {
-		if (indexOf.call(copy, copy[i]) === i) {
-			results.push(copy[i]);
+    elem = copy[i];
+		if (indexOf.call(copy, elem) === i && !(hasElem = elem.nodeType)) {
+			results.push(elem);
 		}
 	}
+
+  // Go through for sort HTMLElements collection
+  if (hasElem) {
+    for(i = 0; i < l; i++) {
+      elem = elems[i];
+      if (indexOf.call(copy, elem) > -1) {
+        results.push(elem);
+      }
+    }
+  }
 
   return results;
 };
@@ -525,15 +530,6 @@ Quanter.error = function(msg) {
 
 attrVal = Quanter.attrVal = function(elem, attr, prop) {
   return invoke(elem, prop || "getAttribute", attr);
-};
-
-/**
- * Document elements sorting and removing duplicates
- * @param {ArrayLike} results An ArrayLike array
- * @returns A sorted unique Array
- */
-Quanter.uniqueSort = function(results) {
-  return unique(results).slice(0).sort();
 };
 
 /**
@@ -585,19 +581,20 @@ Quanter.attr = function(elem, name) {
 
 // Utility function for retrieving the text value of an array of DOM nodes
 getText = Quanter.getText = function(elem) {
-  var text = "",
-    nodeType = elem.nodeType;
+  var node,
+    nodeType = elem.nodeType,
+    text = "",
+    i = 0;
 
   // Handle none-element object
   if (!nodeType) {
 
     // If no nodeType, this is expected to be an array
-    eachMap(function(el) {
-      
-      // Do not traverse comment nodes
-      text += getText(el);
+		while ((node = elem[i++])) {
 
-    })(elem);
+			// Do not traverse comment nodes
+			ret += getText(node);
+		}
   } else if (rnodeType.test(nodeType)) {
 
     // Use textContent for elements
@@ -616,29 +613,6 @@ getText = Quanter.getText = function(elem) {
 
   // Do not include comment or processing instruction nodes
   return text;
-};
-
-/**
- * @internal
- * Creates a higher-order function that performs both "each" and "map"-like operations.
- * 
- * @param {Function} fn   [required] A callback function
- * @param {Boolean} isMap [optional] true/false
- * @returns 
- */
-function eachMap(fn, isMap) {
-  return function(obj) {
-    var value, len = obj.length,
-      i = 0,
-      ret = [];
-
-    for(; i < len; i++) {
-      value = fn(obj[i], i, obj, length, []);
-      value && (isMap ? ret.push(value) : ret.push(obj[i]));
-    }
-
-    return unique(flat(ret));
-  };
 };
 
 /**
@@ -730,7 +704,7 @@ function addCombinators(src) {
  * @param {Function} fn
  */
 function positionalPseudo(fn) {
-  return function(results) {
+  return function(_, _i, results) {
     var j, matches = [],
     matchesIndex = fn([], results.length, results),
     i = matchesIndex.length;
@@ -740,6 +714,7 @@ function positionalPseudo(fn) {
         matches[i] = results[j];
       }
     }
+
     return matches;
   }
 }
@@ -1300,11 +1275,11 @@ Expr = Quanter.selectors = {
     }),
 
     "odd": function(_, i) {
-      return i % 2;
+      return !!(i % 2);
     },
 
     "even": function(_, i) {
-      return (i + 1) % 2;
+      return !!((i + 1) % 2);
     },
 
     "lt": markFunction(function(i) {
@@ -1343,26 +1318,6 @@ for(i of ["submit", "reset"]) {
 
 for(i of ["radio", "checkbox", "file", "password", "email", "color", "number"]) {
   Expr.pseudos[i] = inputButtonPseudo(i, "input");
-}
-
-/**
- * @internal
- * _uniqueSort for advance sorting elements with unique value
- * 
- * @param {Array} results An target array
- * @param {Array} tmp     A compare array
- * @returns A shortest array with includes the unique value
- */
-function _uniqueSort(results, tmp) {
-  var all = Expr.find["TAG"]("*", document);
-
-  eachMap(function(elem) {
-    if (indexOf.call(tmp, elem) > -1) {
-      results.push(elem);
-    }
-  })(all);
-
-  return results;
 }
 
 tokenize = Quanter.tokenize = function(selector) {
@@ -1441,10 +1396,9 @@ tokenize = Quanter.tokenize = function(selector) {
  * @returns {Array} Unique DOM elements matching the selector in the given context.
  */
 select = Quanter.select = function(selector, context, results, seed) {
-  var j, tokens, token, fn, src, type,
+  var j, s, tokens, token, fn, src, type, elem, len, newSrc, value,
     match = tokenize(selector),
-    i = match.length,
-    tmp = [];
+    i = match.length;
 
   // Force result to be an array
   results = results || [];
@@ -1467,17 +1421,27 @@ select = Quanter.select = function(selector, context, results, seed) {
     // Start selecting
     while((token = tokens[j++])) {
       type = token.type;
-      fn = Expr.combinators[type];
+      fn = Expr.combinators[type] || Expr.filter[type].apply(null, token.matches);
+      len = src.length;
+      newSrc = [];
 
-      src = eachMap(function(elem) {
-        return (fn || Expr.filter[type].apply(null, token.matches)).apply(elem, arguments);
-      }, !!fn)(src);
+      for(s = 0; s < len; s++) {
+        elem = src[s];
+        value = fn(elem, s, src, len, []);
+
+        if (value) {
+          Array.isArray(value) ? push.apply(newSrc, value) : newSrc.push(typeof value === "boolean" ? elem : value);
+        }
+      }
+
+      // Update src from newSrc
+      src = newSrc;
     }
-    
-    push.apply(tmp, src);
+
+    push.apply(results, src);
   }
 
-  return _uniqueSort(results, tmp);
+  return uniqueSort(results);
 };
 
 /**

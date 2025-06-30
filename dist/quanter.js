@@ -1,5 +1,5 @@
 /**
- * Quanter CSS Selector Engine v2.0.0
+ * Quanter CSS Selector Engine v2.0.1
  * https://github.com/jqrony/quanter
  * 
  * @license MIT License
@@ -11,7 +11,7 @@
 // Catches errors and disallows unsafe actions
 "use strict";
 
-var version = "2.0.0",
+var version = "2.0.1",
   i,
   support,
   uniqueSort,
@@ -36,7 +36,6 @@ var version = "2.0.0",
 	arr     = [],
   indexOf = arr.indexOf,
 	push    = arr.push,
-  concat  = arr.concat,
   slice   = arr.slice,
 
   // Instance-specific data
@@ -506,7 +505,7 @@ uniqueSort = Quanter.uniqueSort = function(results) {
   // Go through for sort none-HTMLElements collection
   for(; i < len; i++) {
     elem = copy[i];
-		if (indexOf.call(copy, elem) === i && !(hasElem = elem.nodeType)) {
+		if (indexOf.call(copy, elem) === i && !(elem.nodeType && (hasElem = true))) {
 			results.push(elem);
 		}
 	}

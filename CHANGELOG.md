@@ -1,12 +1,23 @@
 # Release Notes
 
+## [v3.0.0](https://github.com/jqrony/quanter/compare/v2.0.1...v3.0.0) - 30-06-2025
+
+* Remove temporary pseudo `:xpath` form Quanter [@indianmodassir](https://github.com/indianmodassir)
+* Add pseudo `:importmap` matches script type [@indianmodassir](https://github.com/indianmodassir)
+* Add pseudo `:module` matches script type [@indianmodassir](https://github.com/indianmodassir)
+* Add pseudo `:json` matches script type [@indianmodassir](https://github.com/indianmodassir)
+* Add pseudo `:ecmascript` matches script type [@indianmodassir](https://github.com/indianmodassir)
+* Add new method `Quanter.isBracketBalanced()` to match proper closed bracket of given string [@indianmodassir](https://github.com/indianmodassir)
+* Add new method `Quanter.XPathSelect()` to select full capabilities of XPath. [@indianmodassir](https://github.com/indianmodassir)
+* Fix bugs of xpath in `Quanter()` with limited support [@indianmodassir](https://github.com/indianmodassir)
+
 ## [v2.0.1](https://github.com/jqrony/quanter/compare/v2.0.0...v2.0.1) - 23-06-2025
 
 * Fix an issue in `Quanter.selectors.pseudos["has"]` where this method not proper working showing error `contains` not a function [@indianmodassir](https://github.com/indianmodassir)
 
 ## [v2.0.0](https://github.com/jqrony/quanter/compare/v1.6.2...v2.0.0) - 26-06-2025
 
-* Removed `Quanter.selectors.pseudos["named"` method [@indianmodassir](https://github.com/indianmodassir)
+* Removed `Quanter.selectors.pseudos["named"` pseudo [@indianmodassir](https://github.com/indianmodassir)
 * Fix an issue in `Quanter.uniqueSort` where this method not proper working [@indianmodassir](https://github.com/indianmodassir)
 
 ## [v1.6.3](https://github.com/jqrony/quanter/compare/v1.6.2...v1.6.3) - 20-06-2025

@@ -1,5 +1,14 @@
 # Release Notes
 
+## [v2.0.1](https://github.com/jqrony/quanter/compare/v2.0.0...v2.0.1) - 23-06-2025
+
+* Fix an issue in `Quanter.selectors.pseudos["has"]` where this method not proper working showing error `contains` not a function [@indianmodassir](https://github.com/indianmodassir)
+
+## [v2.0.0](https://github.com/jqrony/quanter/compare/v1.6.2...v2.0.0) - 26-06-2025
+
+* Removed `Quanter.selectors.pseudos["named"` method [@indianmodassir](https://github.com/indianmodassir)
+* Fix an issue in `Quanter.uniqueSort` where this method not proper working [@indianmodassir](https://github.com/indianmodassir)
+
 ## [v1.6.3](https://github.com/jqrony/quanter/compare/v1.6.2...v1.6.3) - 20-06-2025
 
 * Fix an issue in `Quanter.contains` where this method not proper working showing error `contains` not a function [@indianmodassir](https://github.com/indianmodassir)

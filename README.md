@@ -7,8 +7,8 @@
 [![jsDelivr Hits](https://img.shields.io/jsdelivr/npm/hm/quanter?style=flat-square)](https://www.jsdelivr.com/package/npm/quanter)
 [![downloads month](https://img.shields.io/npm/dm/quanter?style=flat-square)](https://www.npmjs.com/package/quanter)
 
-[Documentation](http://github.com/jqrony/quanter/wiki)
-[Browser support](https://github.com/jqrony/quanter/wiki/#browsers)
+- [Documentation](http://github.com/jqrony/quanter/wiki)
+- [Browser support](https://github.com/jqrony/quanter/wiki/#browsers)
 
 ## How to install Quanter
 To include Quanter in [Node](https://nodejs.org/), first install with npm.

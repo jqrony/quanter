@@ -1,17 +1,21 @@
 /**
- * Quanter CSS Selector Engine v2.0.1
+ * Quanter JavaScript CSS Selector Engine v3.0.1
+ * A lightweight CSS selector engine designed to be easily select DOM-Elements.
  * https://github.com/jqrony/quanter
  * 
- * @license MIT License
+ * Copyright JS Foundation and other contributors
+ * Released under the MIT license
+ * https://github.com/jqrony/quanter/blob/main/LICENSE
+ * 
  * @author Indian Modassir
- * Date: 21 June 2025 06:21 GMT+0530
+ * 
+ * Date: 25-06-2025 08:39 PM
  */
 (function(window) {
 
-// Catches errors and disallows unsafe actions
 "use strict";
 
-var version = "2.0.1",
+var version = "3.0.1",
   i,
   support,
   uniqueSort,
@@ -35,6 +39,7 @@ var version = "2.0.1",
   hasOwn  = ({}).hasOwnProperty,
 	arr     = [],
   indexOf = arr.indexOf,
+  concat  = arr.concat,
 	push    = arr.push,
   slice   = arr.slice,
 
@@ -56,6 +61,10 @@ var version = "2.0.1",
 	selectAll = function(selector, context) {
 		return (context || document).querySelectorAll(selector);
 	},
+
+  /* booleans */
+  booleans = "checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|" +
+		"ismap|loop|multiple|open|readonly|required|scoped",
 
   // Regular expressions sources
   // http://www.w3.org/TR/css3-selectors/#whitespace
@@ -94,10 +103,14 @@ var version = "2.0.1",
   // capturing some non-whitespace characters preceding the latter
 	rwhitespace = new RegExp(whitespace + "+", "g"),
 
-	rcombinators = new RegExp("^" + whitespace+ "*([>+^~<]|" +whitespace+ ")" + whitespace + "*"),
+	rcombinators = new RegExp("^" + whitespace+ "*([>+~<]|" +whitespace+ ")" + whitespace + "*"),
 	rtrim = new RegExp("^" + whitespace + "+|((?:^|[^\\\\])(?:\\\\.)*)" + whitespace + "+$", "g"),
 
   ridentifier = new RegExp("^" + identifier + "$"),
+
+  // Use for XPath Expression
+  // Trimming left XPath Identifier
+  ltrim = new RegExp("^" + whitespace + "*([.]{1,2})?([\\/]{1,2})"),
 
   // Easily-parseable/retrievable ID or TAG or CLASS selectors
   rquickExpr = /^(?:#([\w-]+)|(\w+)|\.([\w-]+))$/,
@@ -110,7 +123,6 @@ var version = "2.0.1",
   ritags = /^(?:img|input|meta|area|keygen|base|link|br|hr|source|col|param|track|wbr|embed|command)/i,
 
   rcomma = new RegExp("^" + whitespace + "*," + whitespace + "*"),
-
   rinputs = /^(?:input|select|textarea|button)/i,
   rplayable = /^(?:audio|video)$/i,
   rheader = /^h[1-6]$/i,
@@ -119,6 +131,18 @@ var version = "2.0.1",
   rnodeType = /^(?:1|9|11)$/,
   rnoAnimation = /^(none)\s*(0s)\s*(ease)\s*(0s).*(running)/,
 
+  /* XPATH-MATCHES */
+  XPathMatches = {
+    "ATTR": new RegExp("^(?:(?:(\\*|" + identifier + ")*\\[)(?:(" + identifier +
+      ").*?)?(?:(?:@(" + identifier + ")|(" + identifier + ")\\(\\))(?:" + whitespace +
+      "*(?:([*^$|!~]?=|,))" + whitespace +
+      "*(?:(['\"])(.*?)\\6))?).*?\\]|@(" + identifier + "))"),
+
+    "SIBLING": new RegExp("^(?:(\\/\\/)|(\\/))(?:(?:(following-sibling)|(descendant)|(child))::)?"),
+    "CHILD": new RegExp("^\\[" + whitespace + "*(" + identifier + ")"+ whitespace + "*\\]")
+  },
+
+  /* MATCH-EXPR */
   matchExpr = {
     "ID": new RegExp("^#(" + identifier + ")"),
 		"CLASS": new RegExp("^\\.(" + identifier + ")"),
@@ -128,23 +152,15 @@ var version = "2.0.1",
 		"CHILD": new RegExp("^:(only|first|last|nth|nth-last)-(child|of-type)(?:\\(" +
 			whitespace + "*(even|odd|(([+-]|)(\\d*)n|)" + whitespace + "*(?:([+-]|)" +
 			whitespace + "*(\\d+)|))" + whitespace + "*\\)|)", "i"),
-    "XPATH": /^\/([^,]+)$/
+
+    // For use in libraries implementing .is()
+    // We use this for POS matching in `select`
+    "needsContext": new RegExp("^" + whitespace +
+      "*[>+~<]|:(even|odd|eq|gt|lt|nth|first|last)(?:\\(" + whitespace +
+      "*((?:-\\d)?\\d*)" + whitespace + "*\\)|)(?=[^-]|$)", "i")
   };
 
 /**
- * @internal
- * Returns a Function marked with unique quanter expando, special treat for fn.
- * 
- * @param {Function} fn [required]
- * @returns {Function} Marked function with unique quanter expando
- */
-function markFunction(fn) {
-  fn[expando] = true;
-  return fn;
-}
-
-/**
- * @internal
  * Safely invoke a method on an object with one argument
  * 
  * @param {object} target [required] The object containing the method
@@ -161,7 +177,7 @@ function invoke(target, method, arg) {
 support = Quanter.support = {};
 
 /**
- * Create Quanter public API
+ * Creates a Quanter public API
  * The main function for finding elements. Uses querySelectorAll if available.
  * Otherwise find elements to other method.
  * 
@@ -173,7 +189,7 @@ support = Quanter.support = {};
  * @returns {Array<HTMLElement>}  All elements matching the selector
  */
 function Quanter(selector, context, results, seed) {
-  var match, s, elem,
+  var s, match, elem, notDoc,
     newContext = context && context.ownerDocument,
 
     // nodeType defaults to 9, since context defaults to document
@@ -189,41 +205,76 @@ function Quanter(selector, context, results, seed) {
   if (!seed) {
     setDocument(context);
 		context = context || document;
+    
+    if (documentIsHTML) {
+      if (nodeType !== 11 && (match = rquickExpr.exec(selector))) {
 
-    // If the selector is sufficiently simple, try using a "get*By*" DOM method
-		// (excepting DocumentFragment context, where the methods don't exist)
-    match = nodeType !== 11 && rquickExpr.exec(selector);
+        /* ID Selector */
+        if ((s = match[1])) {
+          elem = ((notDoc = nodeType !== 9) ? newContext : context).getElementById(s);
 
-    if (documentIsHTML && match) {
-      
-      // QSA Support
-      // Take advantage of querySelectorAll
-      if (support.QSA) {
-        return push.apply(results, selectAll(selector, context)), results;
+          // Support: IE, Opera, Webkit
+          // getElementById can match elements by name instead of ID
+          return (notDoc ?
+            elem.id === s && contains(context, elem) :
+            elem.id === s
+          ) &&
+            results.push(elem),
+            results;
+
+        /* Type or Class selector */
+        } else if ((s = match[2] || match[3])) {
+          elem = context["getElementsBy" + (match[2] ? "Tag" : "Class") + "Name"](s);
+          push.apply(results, elem);
+          return results;
+        }
       }
 
-      // If the QSA not support, try using a "get*By*" DOM method
-      if ((s = match[1])) {
-        context = nodeType !== 9 ? newContext : context;
-
-        // Support: IE, Opera, Webkit
-        // TODO: identify versions
-        // getElementById can match elements by name instead of ID
-        elem = context.getElementById(s);
-        elem.id === s && results.push(elem);
-        return results;
-      } else if (match) {
-        // Type/TAG Selector or CLASS Selector
-        s = match[2] || match[3];
-        elem = context["getElementsBy" + (match[2] ? "Tag" : "Class") + "Name"](s);
-        push.apply(results, elem);
-        return results;
+      /* QSA Support */
+      // Take advantage of querySelectorAll
+      if (support.QSA) {
+        try {
+          push.apply(results, selectAll(selector, context));
+          return results;
+        } catch(_e) {}
       }
     }
   }
 
   // All others complex selectors
 	return select(selector.replace(rtrim, "$1"), context, results, seed);
+}
+
+/**
+ * Utility function to test whether a given feature or behavior is supported by the browser.
+ * 
+ * Internal assert used for support
+ * Support testing using an element
+ * @param {Function} fn Passed the created element and returns a boolean result
+ */
+function assert(fn) {
+	var elem = document.createElement("fieldset");
+	try {
+		return !!fn(elem);
+	}
+	catch(e) {
+		return false;
+	}
+	finally {
+		elem.parentNode && elem.parentNode.removeChild(elem);
+		elem = null;
+	}
+}
+
+/**
+ * Returns a Function marked with unique quanter expando, special treat for fn.
+ * 
+ * @param {Function} fn [required]
+ * @returns {Function} Marked function with unique quanter expando
+ */
+function markFunction(fn) {
+  fn[expando] = true;
+  return fn;
 }
 
 /**
@@ -235,8 +286,25 @@ function Quanter(selector, context, results, seed) {
  * @returns {Boolean} The matched nodeName of the name,
  * or false if the element has no nodeName exists.
  */
-nodeName = Quanter.nodeName = function(elem, name) {
-  return elem.nodeName && elem.nodeName.toLowerCase() === name.toLowerCase();
+function nodeName(elem, name) {
+  var _nodeName = elem && elem.nodeName.toLowerCase();
+  return name ? _nodeName === name.toLowerCase() : _nodeName;
+}
+
+/**
+ * isXML - Checks if a given string is a valid XML document.
+ * 
+ * This function tries to parse the input string using the DOMParser.
+ * If parsing is successful and there are no parser errors,
+ * the string is valid XML.
+ * 
+ * @param {HTMLElement} elem [required]
+ * @returns {Boolean} Returns isXML for true, Otherwise false
+ */
+isXML = Quanter.isXML = function(elem) {
+  var namespace = elem && elem.namespaceURI,
+		docElem = elem && (elem.ownerDocument || elem).documentElement;
+	return !rhtml.test(namespace || nodeName(docElem) || "HTML");
 };
 
 /**
@@ -246,8 +314,9 @@ nodeName = Quanter.nodeName = function(elem, name) {
  * @returns {HTMLDocument} Rreturns current HTML document
  */
 setDocument = Quanter.setDocument = function(node) {
-  var hasCompare, subWindow,
-		doc = node ? node.ownerDocument || node : preferredDoc;
+  var combinator, hasCompare, subWindow,
+		doc = node ? node.ownerDocument || node : preferredDoc,
+    relative = Expr.relative;
 
   // Return early if doc is invalid or already selected
 	// Support: IE 11+, Edge 17 - 18+
@@ -440,6 +509,11 @@ setDocument = Quanter.setDocument = function(node) {
     };
   }
 
+  /* Add Combinators Handler */
+  for(combinator in relative) {
+    Expr.combinators[combinator] = addCombinator(relative[combinator]);
+  }
+
   // Contains
 	// Element contains another Purposefully self-exclusive
 	// As in, an element does not contain itself
@@ -470,22 +544,8 @@ setDocument = Quanter.setDocument = function(node) {
 };
 
 /**
- * isXML - Checks if a given string is a valid XML document.
+ * Document sorting and removing duplicates
  * 
- * This function tries to parse the input string using the DOMParser.
- * If parsing is successful and there are no parser errors,
- * the string is valid XML.
- * 
- * @param {HTMLElement} elem [required]
- * @returns {Boolean} Returns isXML for true, Otherwise false
- */
-isXML = Quanter.isXML = function(elem) {
-  var namespace = elem && elem.namespaceURI,
-		docElem = elem && (elem.ownerDocument || elem).documentElement;
-	return !rhtml.test(namespace || docElem && docElem.nodeName || "HTML");
-};
-
-/**
  * This method removes duplicate values from given array
  * and sort element with sortOrder
  * 
@@ -494,7 +554,7 @@ isXML = Quanter.isXML = function(elem) {
  */
 uniqueSort = Quanter.uniqueSort = function(results) {
   var elem, hasElem,
-    elems = Expr.find["TAG"]("*", document),
+    elems = Expr.find["ELEMENTS"](document),
     i = 0,
     len = results.length,
     copy = results.slice(0).sort(),
@@ -523,10 +583,17 @@ uniqueSort = Quanter.uniqueSort = function(results) {
   return results;
 };
 
+/* Error */
 Quanter.error = function(msg) {
   throw new SyntaxError("Unrecognized expression: " + msg);
 };
 
+/**
+ * Retrieves the value of a specified attribute from a DOM element.
+ * @param {Element} elem [required]
+ * @param {string}  attr [required]
+ * @param {string}  prop [optional]
+ */
 attrVal = Quanter.attrVal = function(elem, attr, prop) {
   return invoke(elem, prop || "getAttribute", attr);
 };
@@ -541,6 +608,137 @@ Quanter.matches = function(expr, elements) {
   return Quanter(expr, null, null, elements);
 };
 
+/**
+ * Executes XPath expressions and collects matching elements from a context node.
+ * Handles complex XPath expressions possibly separated by commas and supports
+ * filtering with a seed set of elements.
+ * 
+ * @param {string} expr The XPath expression
+ * @param {Element} context
+ * @param {Array} [results]
+ * @param {Array} [seed] A set of elements to match against
+ * @returns {Array} A sorted array of unique matched elements.
+ */
+Quanter.XPathSelect = function(expr, context, results, seed) {
+  var token, iterator, elem, first,
+    source = rcomma.source.slice(1),
+    comma = expr.match(new RegExp("(" + source + ")", "g")),
+    snap = XPathResult.ORDERED_NODE_ITERATOR_TYPE,
+    tokens = expr.split(new RegExp(source)),
+    matchesIndex = 0,
+    i = 0;
+
+  context = context || document;
+  seed = seed || Expr.find["ELEMENTS"](context);
+  results = results || [];
+
+  (function select() {
+    try {
+      while((token = tokens[i++])) {
+        iterator = document.evaluate(token, context, null, snap, null);
+        expr = expr.slice(token.length).replace(rcomma, "");
+        elem = iterator.iterateNext();
+        tokens.shift();
+        matchesIndex++;
+        i--;
+
+        while(elem) {
+          if (indexOf.call(seed, elem) > -1) {
+            results.push(elem);
+          }
+          elem = iterator.iterateNext();
+        }
+      }
+    } catch(e) {
+      comma = comma && comma[matchesIndex];
+      token = tokens.shift();
+      first = tokens[0];
+
+      // Check if comma is inside unbalanced brackets and part of the token
+      if (comma && expr[token.length] === comma && !isBracketBalanced(token)) {
+        tokens[0] = token + comma + tokens[0];
+        
+        // Reset index and reprocess
+        i = 0;
+        select();
+      } else {
+        // If not a recoverable bracket error,
+        // rethrow the exception
+        throw e;
+      }
+    }
+  })();
+
+  return uniqueSort(results);
+};
+
+/**
+ * Checks whether all types of brackets in the input string are properly balanced.
+ * Supports: (), {}, and [].
+ * 
+ * A string is considered balanced if:
+ * Every opening bracket has a corresponding and correctly nested closing bracket.
+ * 
+ * @param {string} str The input string to check.
+ * @returns {boolean} Returns true if brackets are balanced, false otherwise.
+ */
+function isBracketBalanced(str) {
+  var char, last, stack = [],
+    brackets = {
+      "[" : "]",
+      "{" : "}",
+      "(" : ")"
+    };
+
+  for(char of str) {
+    // If the character is an opening bracket, push it to the stack
+    if (brackets[char]) {
+
+      // Store opening bracket
+      stack.push(char);
+
+    // If the character is a closing bracket
+    } else if (Object.values(brackets).indexOf(char) > -1) {
+      // Pop the last opening bracket from the stack
+      last = stack.pop();
+
+      // Check if the popped bracket matches the current closing bracket
+      if (brackets[last] !== char) {
+        return false;
+      }
+    }
+  }
+
+  return !stack.length;
+}
+
+/**
+ * Returns a function to handle multi combinators (e.g., [>~+<])
+ * @param {Object} src An combinator relative object
+ * @returns {HTMLCollection} Matches HTMLCollection
+ */
+function addCombinator(src) {
+  return function(elem) {
+    var el, tmp = [],
+      {dir, type, method} = src,
+      once = !!src.once;
+
+    // Handle: [>+<] Combinator
+    if (once || method) {
+      return once ? (el = elem[dir]) && [el] : Expr[method][type](elem);
+
+    // Otherwise,
+    // Handle: [~] Combinator
+    } else {
+      while((elem = elem[dir]) && elem.nodeType === 1) {
+        tmp.push(elem);
+      }
+      return tmp;
+    }
+  };
+}
+
+/* Contains */
 Quanter.contains = function(context, elem) {
 
   // Set document vars if needed
@@ -552,6 +750,7 @@ Quanter.contains = function(context, elem) {
   return contains(context, elem);
 };
 
+/* ATTR */
 Quanter.attr = function(elem, name) {
 
   // Set document vars if needed
@@ -559,14 +758,14 @@ Quanter.attr = function(elem, name) {
 	// IE/Edge sometimes throw a "Permission denied" error when
 	// strict-comparing two documents; shallow comparisons work.
 	// eslint-disable-next-line eqeqeq
-  (elem.ownerDocument || elem) !== document && setDocument(elem);
+  (elem.ownerDocument || elem) != document && setDocument(elem);
 
   name = (name || "").toLowerCase();
   var fn = Expr.attrHandle[name],
 
     // Don't get fooled by Object.prototype properties
     val = fn && hasOwn.call(Expr.attrHandle, name) ?
-      fn(elem) :
+      fn(elem, name, !documentIsHTML) :
       undefined;
 
   return val !== undefined ?
@@ -606,6 +805,9 @@ getText = Quanter.getText = function(elem) {
         text += getText(elem);
       }
     }
+
+  // Otherwise,
+  // Handle: textNode or CData
   } else if (nodeType === 3 || nodeType === 4) {
     return elem.nodeValue;
   }
@@ -615,7 +817,6 @@ getText = Quanter.getText = function(elem) {
 };
 
 /**
- * @internal
  * Retrieves the computed style value of a specific CSS property for a given element.
  * 
  * @param {Element} elem [required]
@@ -637,136 +838,86 @@ function style(elem, name) {
 }
 
 /**
- * @internal
- * Utility function to test whether a given feature or behavior is supported by the browser.
- * 
- * Internal assert used for support
- * Support testing using an element
- * @param {Function} fn Passed the created element and returns a boolean result
- */
-function assert(fn) {
-	var elem = document.createElement("fieldset");
-	try {
-		return !!fn(elem);
-	}
-	catch(e) {
-		return false;
-	}
-	finally {
-		elem.parentNode && elem.parentNode.removeChild(elem);
-		elem = null;
-	}
-}
-
-/**
- * @internal
  * Allow to extends none-existable new pseudo from outside
  * 
  * @param {string} pseudo    [required]
  * @param {Function} fn      [required]
  * @param {boolean} markable [optional]
  */
-function extendPseudo(pseudo, fn, markable) {
+function addPseudo(pseudo, fn, markable) {
   
+  // If already exist pseudo
   if (Expr.pseudo[pseudo]) {
     Quanter.error("Pseudo : " + pseudo + " already exists");
   }
-
   Expr.pseudo[pseudo] = markable ? markFunction(fn) : fn;
 }
 
 /**
- * @internal
- * Returns a function to use multi combinators (e.g., [>+^~<])
- * 
- * @param {Object} src [required]
- * @returns matched elements results
+ * Adds the same handler for all of the specified attrs
+ * @param {String} attrs Pipe-separated list of attributes
+ * @param {Function} handler The method that will be applied
  */
-function addCombinators(src) {
-  var tmp = [], {dir, type, method} = src, once = !!src.once;
+function addHandle(attrs, handler) {
+  var arr = attrs.split("|"),
+		i = arr.length;
+
+	while (i--) {
+		Expr.attrHandle[arr[i]] = handler;
+	}
+}
+
+/* PSEUDOS HANDLERS */
+
+/**
+ * Returns a function to use in pseudos for valid input
+ * @param {Boolean} isValid [required]
+ * @returns {boolean} Match for true, Otherwise false
+ */
+function validInputPseudo(isValid) {
   return function(elem) {
-    if (once || method) {
-      return once ? elem[dir] : Expr[method][type](elem);
-    } else {
-      while((elem = elem[dir]) && elem.nodeType === 1) {
-        tmp.push(elem);
-      }
-      return tmp;
-    }
+    return rnative.test(elem.checkValidity) && elem.checkValidity() === isValid;
   };
 }
 
 /**
- * @internal
- * Returns a function to use in pseudos for positionals
- * 
- * @param {Function} fn
+ * Returns a function to use in pseudos for script types
+ * @param {RegExp} regex [required]
+ * @returns {boolean} Match for true, Otherwise false
  */
-function positionalPseudo(fn) {
-  return function(_, _i, results) {
-    var j, matches = [],
-    matchesIndex = fn([], results.length, results),
-    i = matchesIndex.length;
-
-    while(i--) {
-      if (results[(j = matchesIndex[i])]) {
-        matches[i] = results[j];
-      }
-    }
-
-    return matches;
-  }
-}
-
-/**
- * @internal
- * Returns a function to use in pseudos for attributes
- * 
- * @param {String} expr 
- * @param {String} attr 
- * @param {Boolean} not 
- */
-function attrPseudo(expr, attr, not) {
+function scriptPseudo(regex) {
   return function(elem) {
-    return (typeof expr === "string" ? nodeName(elem, expr) : expr.test(name)) &&
-      !!elem[attr] === !not;
+    return nodeName(elem, "script") && regex.test(elem.type);
   };
 }
 
 /**
- * @internal
+ * Returns a function to use in pseudos for form methods
+ * @param {string} method [required]
+ * @returns {boolean} Match for true, Otherwise false
+ */
+function formPseudo(method) {
+  return function(elem) {
+    return nodeName(elem, "form") && elem.method.toLowerCase() === method;
+  };
+}
+
+/**
  * Returns a function to use in pseudos for buttons or inputs
- * 
- * @param {String} type
- * @returns inputs or buttons element
+ * @param {string} type [required]
+ * @param {string} tag  [required]
+ * @returns {boolean} Match for true, Otherwise false
  */
-function inputButtonPseudo(type, tag) {
+function inputOrButtonPseudo(type, tag) {
   return function(elem) {
     return nodeName(elem, tag) && elem.type === type;
   };
 }
 
 /**
- * @internal
- * Returns a function to use in pseudos for hidden/visible element
- * 
- * @param {Boolean} hidden 
- * @returns 
- */
-function hiddenPseudo(hidden) {
-  return function(elem) {
-    var visibility = style(elem, "visibility"),
-				display = style(elem, "display");
-			return (visibility === "hidden" || display === "none" || elem.hidden) === hidden;
-  };
-}
-
-/**
- * @internal
  * Returns a function to use in pseudos for filter elements
- * 
- * @param {Boolean} not 
- * @returns 
+ * @param {boolean} not [required]
+ * @returns {boolean} Match for true, Otherwise false
  */
 function filterPseudo(not) {
   return markFunction(function(selector) {
@@ -778,52 +929,48 @@ function filterPseudo(not) {
 }
 
 /**
- * @internal
- * Returns a function to use in pseudos for form element
- * 
- * @param {String} method 
- * @returns 
+ * Returns a function to use in pseudos for attribute elements
+ * @param {string} expr [required]
+ * @param {string} attr [required]
+ * @param {boolean} not [required]
+ * @returns {boolean} Match for true, Otherwise false
  */
-function formPseudo(method) {
+function attrPseudo(expr, attr, not) {
   return function(elem) {
-    return nodeName(elem, "form") && elem.method.toLowerCase() === method;
+    return (typeof expr === "string" ? nodeName(elem, expr) : expr.test(expr)) &&
+      !!elem[attr] === !not;
   };
 }
 
 /**
- * @internal
- * Returns a function to use in pseudos for input with range
- * 
- * @param {Boolean} inRange 
- * @returns 
+ * Returns a function to use in pseudos for input range (min,max)
+ * @param {boolean} inRange [required]
+ * @returns  {boolean} Match for true, Otherwise false
  */
 function rangePseudo(inRange) {
   return function(elem) {
-    var isNumInput = nodeName(elem, "input") && elem.type === "number",
-      val = +elem.value,
-      min = +elem.min,
-      max = +elem.max;
-    return isNumInput && (min <= val && max >= val) === inRange;
+    var val = +elem.value, min = +elem.min, max = +elem.max;
+    return nodeName(elem, "input") && elem.type === "number" && (min <= val && max >= val) === inRange;
   };
 }
 
 /**
- * @internal
- * Returns a function to use in pseudos for input valid element
- * 
- * @param {Boolean} isValid 
- * @returns 
+ * Returns a function to use in pseudos for hidden/visible elements
+ * @param {boolean} hidden [required]
+ * @returns {boolean} Match for true, Otherwise false
  */
-function validPseudo(isValid) {
+function hiddenPseudo(hidden) {
   return function(elem) {
-    return rnative.test(elem.checkValidity) && elem.checkValidity() === isValid;
+    var visibility = style(elem, "visibility"),
+				display = style(elem, "display");
+			return (visibility === "hidden" || display === "none" || elem.hidden) === hidden;
   };
 }
 
 /**
- * @internal
  * Returns a function to use in pseudos for :enabled/:disabled
  * @param {Boolean} disabled true for :disabled; false for :enabled
+ * @returns {boolean} Match for true, Otherwise false
  */
 function disabledPseudo(disabled) {
   // Known :disabled false positives: fieldset[disabled] > legend:nth-of-type(n+2) :can-disable
@@ -862,19 +1009,20 @@ function disabledPseudo(disabled) {
     return false;
   };
 }
+/* END */
 
+
+/* EXPR/SELECTORS */
 Expr = Quanter.selectors = {
-  // createPseudo to create arg based markable :pseudo
   createPseudo: markFunction,
+  addPseudo: addPseudo,
 
   combinators: {},
   attrHandle: {},
   find: {},
   match: matchExpr,
 
-  // extendPseudo to extend new none-existable :pseudo
-  extendPseudo: extendPseudo,
-
+  /* COMBINATORS */
   relative: {
     "+": {dir: "nextElementSibling", once: true},
 		"<": {dir: "parentNode", once: true},
@@ -883,30 +1031,81 @@ Expr = Quanter.selectors = {
 		">": {type: "CHILDREN", method: "find"}
   },
 
-  preFilter: {
-    "XPATH": function(match) {
-      match[1] = match[0];
-      return match.slice(0, 2);
-    },
+  /* XPATH-FILTER */
+  XPathFilter: {
+    "ATTR": function(match) {
+      var m, selector, fn, pseudo,
+        rbounds = /^(?:(starts)|(ends))-with$/,
+        tag = match[1] || "",
+        attr = function() {
+          return "[" + (match[3] || match[8] || "") + (match[5] || "") + (match[7] || "") + "]";
+        };
 
+      // Replace comma (,) to (=), If match[5]
+      if (match[5] && rcomma.test(match[5])) {
+        match[5] = "=";
+      }
+
+      // Handle: function if includes in attribute
+      if ((fn = match[2]) || match[4]) {
+
+        // Handle: [start-with()] [and ends-with()]
+        if ((m = rbounds.exec(fn))) {
+          match[5] = m[0] ? "^=" : "$=";
+          match[2] = undefined;
+        }
+        
+        // Handle: pseudo if includes in pseudos
+        if (Expr.pseudos[fn]) {
+          if (match[4]) {
+            pseudo = ":" + match[4] + "('" + match[7] + "')";
+          }
+          
+          if (match[2]) {
+            selector = tag + ":" + match[2] + "(" + (pseudo || attr()) + ")";
+          }
+        }
+      }
+
+      /* Tokenize Selector */
+      match[1] = tokenize(selector || tag + attr());
+      return match;
+    },
+    "CHILD": function(match) {
+      var selector = ":" + (!isNaN(+match[1]) ? "nth-of-type(" : "has(") + match[1] + ")",
+        tokens = tokenize(selector);
+
+      match[1] = tokens;
+      return match;
+    },
+    "SIBLING": function(match) {
+      var selector = match[3] ? "~" : match[1] || match[4] ? " " : ">";
+      match[1] = [{value: selector, type: selector}];
+      return match;
+    }
+  },
+
+  /* PRE-FILTER */
+  preFilter: {
     "CLASS": function(match) {
       return match.slice(0, 2);
     },
-
     "ATTR": function(match) {
       // Move the given value to match[3] whether quoted or unquoted
 			match[3] = (match[3] || match[4] || match[5] || "");
+
+      if (match[2] === "~=") {
+				match[3] = " " + match[3] + " ";
+			}
+
 			return match.slice(0, 4);
     },
-
     "TAG": function(match) {
       return match.slice(0, 2);
     },
-
     "ID": function(match) {
       return match.slice(0, 2);
     },
-
     "CHILD": function(match) {
       /* matches from matchExpr["CHILD"]
 			  1 type (only|nth|...)
@@ -919,7 +1118,6 @@ Expr = Quanter.selectors = {
 				8 y of y-component
 			*/
       match[1] = match[1].toLowerCase();
-      match[4] = match[0].toLowerCase();
 
       if (match[1].slice(0, 3) === "nth") {
         
@@ -927,6 +1125,13 @@ Expr = Quanter.selectors = {
         if (!match[3]) {
           Quanter.error(match[0]);
         }
+
+        // numeric x and y parameters for Expr.filter.CHILD
+				// remember that false/true cast respectively to 0/1
+				match[4] = +(match[4] ?
+					match[5] + (match[6] || 1) :
+					2 * (match[3] === "even" || match[3] === "odd"));
+				match[5] = +((match[7] + match[8]) || match[3] === "odd");
 
       // Other types prohibit arguments
       } else if (match[3]) {
@@ -946,35 +1151,14 @@ Expr = Quanter.selectors = {
     }
   },
 
+  /* FILTER */
   filter: {
-    "XPATH": markFunction(function(expr) {
-      return function(elem) {
-        try {
-          // Support: Chrome, Firefox, Edge, Safari, Opera, IE9+
-		      // https://developer.mozilla.org/en-US/docs/Web/XPath
-          var result = document.evaluate(expr, elem, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null),
-            i = result.snapshotLength,
-            tmp = [];
-
-          // Retrive all matched elements
-          while(i--) {
-            tmp.push(result.snapshotItem(i));
-          }
-
-          return indexOf.call(tmp, elem) > -1;
-        } catch(e) {
-          Quanter.error("unsupport expression: " + expr);
-        }
-      };
-    }),
-
     "TAG": markFunction(function(tagName) {
       tagName = tagName.toLowerCase();
       return function(elem) {
         return tagName === "*" ? true : nodeName(elem, tagName);
       };
     }),
-
     "CLASS": markFunction(function(className) {
       return function(elem) {
         var pattern;
@@ -983,24 +1167,20 @@ Expr = Quanter.selectors = {
 					pattern.test(attrVal(elem, "class") || elem.className || "");
       };
     }),
-
     "ATTR": markFunction(function(name, operator, check) {
       return function(elem) {
         var result = Quanter.attr(elem, name);
 
-				if (result == null) {
-					return operator === "!=";
-				}
-
-				if (!operator) {
-					return !!result;
+				if (result == null || !operator) {
+          return result == null ?
+            operator === "!=" :
+            true;
 				}
 
 				// toString result
 				result += "";
 
 				/* eslint-disable max-len */
-
 				return operator === "=" ? result === check :
           operator === "!=" ? result !== check :
 					operator === "^=" ? check && result.indexOf(check) === 0 :
@@ -1012,11 +1192,10 @@ Expr = Quanter.selectors = {
 				/* eslint-enable max-len */
       };
     }),
-
-    "CHILD": markFunction(function(type, what, _arg, expr) {
+    "CHILD": markFunction(function(type, what, _arg, first, last) {
       var simple = type.slice(0, 3) !== "nth",
-        forward = type.slice(-4) !== "last",
-        ofType = what === "of-type";
+				forward = type.slice(-4) !== "last",
+				ofType = what === "of-type";
 
       /*
 			 * :nth-last-of-type(n)
@@ -1030,36 +1209,63 @@ Expr = Quanter.selectors = {
 			 * :only-of-type
 			 * :nth-last-child(n)
 			 */
-      return function(elem) {
-        var node, start,
-          dir = simple !== forward ? "nextSibling" : "previousSibling";
-        
-        // Take advantage of querySelectorAll support
-        if (support.QSA) {
-          return indexOf.call(selectAll(expr), elem) > -1;
-        }
+			return first === 1 && last === 0 ?
 
-        if (elem.parentNode) {
+				// Shortcut for :nth-*(n)
+				function(elem) {
+					return !!elem.parentNode;
+				} :
 
-          // Handle none-argument CHILD
-          // :(first|last|only)-(child|of-type)
-          if (simple) {
-            while(dir) {
-              node = elem;
-              while((node = node[dir])) {
-                if (ofType ? nodeName(node, elem.nodeName) : node.nodeType === 1) {
-                  return false;
+        function (elem) {
+          var node, start, diff,
+						dir = simple !== forward ? "nextSibling" : "previousSibling",
+						parent = elem.parentNode,
+            matchesTypes = Expr.find["TAG"](elem.nodeName, parent).length,
+            children = Expr.find["CHILDREN"](parent),
+            matchesIndex = 0,
+            childIndex = 0,
+            results = [];
+
+          if (parent) {
+            /* Handle none-argument CHILD Pseudos */
+            /* :(first|last|only)-(child|of-type) */
+            if (simple) {
+              while(dir) {
+                node = elem;
+                while((node = node[dir])) {
+                  if (ofType ? nodeName(node, elem.nodeName) : node.nodeType === 1) {
+                    return false;
+                  }
+                }
+                // Reverse direction for :only-* (if we haven't yet done so)
+                start = dir = type === "only" && !start && "nextSibling";
+              }
+              return true;
+            }
+
+            /* Handle argument-based CHILD Pseudos */
+            /* :(nth)(-last)-(child|of-type)(n) */
+            while((node = children[childIndex++])) {
+              if (ofType ? nodeName(node, elem.nodeName) : node.nodeType === 1) {
+                diff = forward ?
+                  /* For :nth-child(n) And :nth-of-type(n) */
+                  ++matchesIndex :
+
+                  /* For :nth-last-child(n) And :nth-last-of-type(n) */
+                  matchesTypes--;
+
+                diff -= last;
+                // Incorporate the offset, then check against cycle size
+                if (diff === first || (diff % first === 0 && diff / first >= 0)) {
+                  results.push(node);
                 }
               }
-              // Reverse direction for :only-* (if we haven't yet done so)
-							start = dir = type === "only" && !start && "nextSibling";
             }
-            return true;
-          }
-        }
-      };
-    }),
 
+            return indexOf.call(results, elem) > -1;
+          }
+        };
+    }),
     "PSEUDO": markFunction(function(pseudo, arguemnt) {
 
       // pseudo-class names are case-insensitive
@@ -1067,32 +1273,32 @@ Expr = Quanter.selectors = {
 			// Prioritize by case sensitivity in case custom pseudos are added with uppercase letters
 			// Remember that setFilters inherits from pseudos
       var fn = Expr.pseudos[pseudo] || Expr.setFilters[pseudo.toLowerCase()] ||
-					Quanter.error( "unsupported pseudo: " + pseudo);
+				Quanter.error("unsupported pseudo: " + pseudo);
 
       // The user may use createPseudo to indicate that
 			// arguments are needed to create the filter function
 			// just as Quanter does
       return fn[expando] ?
-				fn(arguemnt) :
+				fn(!isNaN(+arguemnt) ? +arguemnt : arguemnt) :
 				fn;
     })
   },
 
+  /* PSEUDOS */
   pseudos: {
+
+    /* Potentially complex pseudos */
     "viewport": function(elem) {
       return nodeName(elem, "meta") && elem.name === "viewport";
     },
-
     "theme": function(elem) {
       return nodeName(elem, "meta") && rthemes.test(elem.name);
     },
-
     "contains": markFunction(function(text) {
       return function(elem) {
         return (elem.textContent || getText(elem)).indexOf(text) > -1;
       };
     }),
-
     "icontains": markFunction(function(text) {
       return function(elem) {
         return (
@@ -1107,6 +1313,13 @@ Expr = Quanter.selectors = {
       var hash = window.location && window.location.hash;
       return hash && hash.slice(1) === elem.id;
     },
+
+    /* Potentially complex pseudos */
+    "has": markFunction(function(selector) {
+      return function(elem) {
+        return Quanter(selector, elem).length > 0;
+      }
+    }),
 
     // "Whether an element is represented by a :lang() selector
 		// is based solely on the element's language value
@@ -1139,16 +1352,15 @@ Expr = Quanter.selectors = {
       };
     }),
 
-    /* Boolean and Inline properties */
+    /* Boolean properties */
     "disabled": disabledPseudo(true),
     "enabled": disabledPseudo(false),
     "hidden": hiddenPseudo(true),
     "visible": hiddenPseudo(false),
-    "not": filterPseudo(false),
     "get": formPseudo("get"),
     "post": formPseudo("post"),
-    "has": filterPseudo(true),
-    "filter": filterPseudo(false),
+    "filter": filterPseudo(true),
+    "not": filterPseudo(false),
 
     /* CSS3 predefine default pseudo */
     "indeterminate": attrPseudo("input", "indeterminate"),
@@ -1160,42 +1372,39 @@ Expr = Quanter.selectors = {
     "model": attrPseudo("input", "open"),
     "paused": attrPseudo(rplayable, "paused"),
     "muted": attrPseudo(rplayable, "muted"),
-    "invalid": validPseudo(false),
-    "valid": validPseudo(true),
+    "invalid": validInputPseudo(false),
+    "valid": validInputPseudo(true),
     "autoplay": attrPseudo(rplayable, "autoplay"),
     "optional": attrPseudo("input", "required", true),
+    "playing": function(elem) {
+      return rplayable.test(elem.nodeName) && !(elem.paused && elem.muted);
+    },
 
+    /* Active or Complex pseudos */
     "active": function(elem) {
       return elem.activeElement;
     },
-
     "inline": function(elem) {
       return ritags.test(elem.nodeName);
     },
-
     "root": function(elem) {
       return elem === docElem;
     },
-
     "editable": function(elem) {
       return elem.contentEditable === "true";
     },
-
     "focus": function(elem) {
       return elem === elem.activeElement ||
         (!document.hasFocus && document.hasFocus()) && !!(elem.type || elem.href || ~elem.tabIndex);
     },
-
     "checked": function(elem) {
       // In CSS3, :checked should return both checked and selected elements
 			// http://www.w3.org/TR/2011/REC-css3-selectors-20110929/#checked
       return (nodeName(elem, "input") && !!elem.checked) || (nodeName(elem, "option") && !!elem.selected);
     },
-
     "offset": function(elem) {
       return style(elem, "position") !== "static";
     },
-
     "selected": function(elem) {
       // Accessing this property makes selected-by-default
 			// options in Safari work properly
@@ -1203,14 +1412,9 @@ Expr = Quanter.selectors = {
       elem.parentNode && elem.parentNode.selectedIndex;
 			return elem.selected === true;
     },
-
     "parent": function(elem) {
       return !Expr.pseudos["empty"](elem)
     },
-
-    "xpath": markFunction(function(expr) {
-      return Expr.filter["XPATH"](expr);
-    }),
 
     /* Contents */
     "empty": function(elem) {
@@ -1230,15 +1434,12 @@ Expr = Quanter.selectors = {
     "header": function(elem) {
       return rheader.test(elem.nodeName);
     },
-
     "input": function(elem) {
       return rinputs.test(elem.nodeName);
     },
-
     "button": function(elem) {
       return nodeName(elem, "button") || (nodeName(elem, "input") && elem.type === "button");
     },
-
     "text": function(elem) {
       var attr;
       return nodeName(elem, "input") &&
@@ -1247,101 +1448,90 @@ Expr = Quanter.selectors = {
 				// New HTML5 attribute values (e.g., "search") appear with type==="text"
         ((attr = attrVal(elem, "type")) == null || attr.toLowerCase() === "text");
     },
-
-    "named": markFunction(function(name) {
-      return function(elem) {
-        return name ? elem.name === name : elem.hasAttribute(name);
-      };
-    }),
-
     "animated": function(elem) {
       return nodeName(elem, "marquee") || !rnoAnimation.test(style(elem, "animation"));
     },
 
     /* Position-in-collection pseudos */
-    "first": positionalPseudo(function() {
-      return [0];
-    }),
-
-    "last": positionalPseudo(function(_, length) {
-      return [length - 1];
-    }),
-
+    "first": function(_, i) {
+      return i === 1;
+    },
+    "last": function(_, i, length) {
+      return i === length;
+    },
     "eq": markFunction(function(i) {
-      return positionalPseudo(function(_, length) {
-        return [i < 0 ? i + length : i];
-      });
+      return function(_, index, length) {
+        return (i < 0 ? i + length : i) === --index;
+      };
     }),
-
     "odd": function(_, i) {
       return !!(i % 2);
     },
-
     "even": function(_, i) {
       return !!((i + 1) % 2);
     },
-
     "lt": markFunction(function(i) {
-      return positionalPseudo(function(matchesIndex, length) {
-        i = i < 0 ? ~~i + length : i > length ? length : i;
-				for(; --i >= 0;) matchesIndex.push(i);
-				return matchesIndex.reverse();
-      });
+      return function(_, index, length) {
+        i = i < 0 ? i + length : i > length ? length : i;
+        return i > --index;
+      };
     }),
-
     "gt": markFunction(function(i) {
-      return positionalPseudo(function(matchesIndex, length) {
-        i = i < 0 ? ~~i + length : i > length ? length : i;
-				for(; ++i < length;) matchesIndex.push(i);
-				return matchesIndex;
-      });
+      return function(_, index, length) {
+        i = i < 0 ? i + length : i > length ? length : i;
+        return i < --index;
+      };
     }),
-
-    "playing": function(elem) {
-      return rplayable.test(elem.nodeName) && !(elem.paused && elem.muted);
-    }
   }
 };
 
-Expr.pseudos["nth"]	= Expr.pseudos["eq"];
-
-// Add Expr.relative Combinators
-for(i in Expr.relative) {
-	Expr.combinators[i] = addCombinators(Expr.relative[i]);
+/* Add script type pseudos */
+for (i of [
+  "importmap",
+  "module",
+  ["ecmascript", /^(application|text)\/ecmascript$/i],
+  ["json", /^application\/(ld\+|json)+$/i]
+]) {
+  var isGroup = Array.isArray(i);
+  var prop = isGroup ? i[0] : i;
+  var regex = isGroup ? i[1] : new RegExp("^" + i + "$");
+  Expr.pseudos[prop] = scriptPseudo(regex);
 }
 
-// Add button/input type pseudos
+/* Add button/input type pseudos */
 for(i of ["submit", "reset"]) {
-  Expr.pseudos[i] = inputButtonPseudo(i, "button");
+  Expr.pseudos[i] = inputOrButtonPseudo(i, "button");
+}
+for(i of ["radio", "checkbox", "url", "file", "password", "email", "color", "number"]) {
+  Expr.pseudos[i] = inputOrButtonPseudo(i, "input");
 }
 
-for(i of ["radio", "checkbox", "file", "password", "email", "color", "number"]) {
-  Expr.pseudos[i] = inputButtonPseudo(i, "input");
-}
-
+/* TOKENIZE */
 tokenize = Quanter.tokenize = function(selector) {
-  var soFar, matched, match, groups, tokens,
-		type, preFilters;
-
-  preFilters = Expr.preFilter;
+  var soFar, matched, match, groups, tokens, type,
+    XPathFilter = Expr.XPathFilter,
+    preFilters = Expr.preFilter,
+    allowXPath = ltrim.test(selector),
+    isActiveXPath = allowXPath,
+    groups = [];
+    
   soFar = selector.trim();
-	groups = [];
-	
   while(soFar) {
-
-    // Comma and first run
+    
+    /* Comma and first run */
     if (!matched || (match = rcomma.exec(soFar))) {
       if (match) {
-
         // Don't consume trailing commas as valid
         soFar = soFar.slice(match[0].length) || soFar;
+        isActiveXPath = false;
+        allowXPath = true;
       }
       groups.push((tokens = []));
     }
 
     matched = false;
 
-    // Combinators
+    /* Combinators */
     if ((match = rcombinators.exec(soFar))) {
       matched = match.shift();
 
@@ -1353,10 +1543,13 @@ tokenize = Quanter.tokenize = function(selector) {
       soFar = soFar.slice(matched.length);
     }
 
-    // Filters
+    /* Non-XPath Filters */
     for(type in Expr.filter) {
       if ((match = matchExpr[type].exec(soFar)) &&
-      (!preFilters[type] || (match = preFilters[type](match)))) {
+      (!preFilters[type] || (match = preFilters[type](match))) &&
+
+      // Don't create [ATTR] token, If XPath already matched
+      (!(isActiveXPath && type == "ATTR"))) {
         matched = match.shift();
 
         tokens.push({
@@ -1364,6 +1557,22 @@ tokenize = Quanter.tokenize = function(selector) {
           type,
           matches: match
         });
+        soFar = soFar.slice(matched.length);
+      }
+    }
+
+    /* First trim XPath identifier */
+    if (allowXPath && ltrim.test(soFar)) {
+      soFar = soFar.replace(ltrim, "");
+      matched = isActiveXPath = true;
+      allowXPath = false;
+    }
+
+    /* XPath Filters */
+    for(type in XPathFilter) {
+      if ((match = XPathMatches[type].exec(soFar)) && (match = XPathFilter[type](match))) {
+        matched = match.shift();
+        push.apply(tokens, concat.apply([], match[0]));
         soFar = soFar.slice(matched.length);
       }
     }
@@ -1377,66 +1586,55 @@ tokenize = Quanter.tokenize = function(selector) {
   // Return the length of the invalid excess
 	// if we're just parsing
 	// Otherwise, throw an error or return tokens
-  return soFar ?
-    Quanter.error(soFar) :
-    groups.slice(0);
+  return soFar ? Quanter.error(soFar) : groups.slice(0);
 };
+
 
 /**
  * Selects DOM elements based on a CSS selector string.
  * This function acts similarly to querySelectorAll but includes support for custom tokenization,
  * filtering, and combinator logic as defined in the `Expr` object.
  * 
- * @param {String}  selector A CSS-like selector string used to identify DOM elements.
- * @param {Element} context  The root DOM node within which to perform the search.
+ * @param {String}  selector  A CSS-like selector string used to identify DOM elements.
+ * @param {Element} context   The root DOM node within which to perform the search.
  * @param {Array}   [results] An optional array to which the matched elements will be added.
- * @param {Array}   [seed] A set of elements to match against
+ * @param {Array}   [seed]    A set of elements to match against
  * 
  * @returns {Array} Unique DOM elements matching the selector in the given context.
  */
 select = Quanter.select = function(selector, context, results, seed) {
-  var j, s, tokens, token, fn, src, type, elem, len, newSrc, value,
+  var j, q, tokens, token, src, type, elem, value, next, fn,
     match = tokenize(selector),
-    i = match.length;
+    i = 0;
 
   // Force result to be an array
   results = results || [];
 
-  while(i--) {
-    tokens = match[i];
+  while((tokens = match[i++])) {
+
+    // Force seed or extract all context elements
+    src = seed || Expr.find["ELEMENTS"](context);
     j = 0;
 
-    // Force seed or extract context elements
-    src = slice.call(
-      seed ||
-      Expr.find["TAG"]("*", !context.nodeType ? document : context)
-    );
-
-    // For single combinator
+    // HANDLE: For single combinator
     if (tokens.length === 1 && rcombinators.test(tokens[0].type)) {
       src = [context];
     }
 
-    // Start selecting
     while((token = tokens[j++])) {
       type = token.type;
       fn = Expr.combinators[type] || Expr.filter[type].apply(null, token.matches);
-      len = src.length;
-      newSrc = [];
+      next = [];
+      q = 0;
 
-      for(s = 0; s < len; s++) {
-        elem = src[s];
-        value = fn(elem, s, src, len, []);
-
-        if (value) {
-          Array.isArray(value) ? push.apply(newSrc, value) : newSrc.push(typeof value === "boolean" ? elem : value);
+      // Go through to start selecting the element
+      while((elem = src[q++])) {
+        if ((value = fn(elem, q, src.length))) {
+          push.apply(next, value === true ? [elem] : value);
         }
       }
-
-      // Update src from newSrc
-      src = newSrc;
+      src = next;
     }
-
     push.apply(results, src);
   }
 
@@ -1451,13 +1649,63 @@ function setFilters() {}
 setFilters.prototype = Expr.filters = Expr.pseudos;
 Expr.setFilters = new setFilters();
 
+/* One-time assignments */
+
+Quanter.isBracketBalanced = isBracketBalanced;
+
 // Initialize against the default document
 setDocument();
 
 // The current version of Quanter being used
 Quanter.version = version;
 
+// Support: IE<8
+// Prevent attribute/property "interpolation"
+// https://msdn.microsoft.com/en-us/library/ms536429%28VS.85%29.aspx
+if (!assert( function(el) {
+	el.innerHTML = "<a href='#'></a>";
+	return el.firstChild.getAttribute("href") === "#";
+})) {
+	addHandle("type|href|height|width", function(elem, name, isXML) {
+		if (!isXML) {
+			return elem.getAttribute(name, name.toLowerCase() === "type" ? 1 : 2);
+		}
+	});
+}
+
+// Support: IE<9
+// Use defaultValue in place of getAttribute("value")
+if (!support.attributes || !assert(function(el) {
+	el.innerHTML = "<input/>";
+	el.firstChild.setAttribute("value", "");
+	return el.firstChild.getAttribute("value") === "";
+})) {
+	addHandle("value", function(elem, _name, isXML) {
+		if (!isXML && elem.nodeName.toLowerCase() === "input") {
+			return elem.defaultValue;
+		}
+	});
+}
+
+// Support: IE<9
+// Use getAttributeNode to fetch booleans when getAttribute lies
+if (!assert(function(el) {
+	return el.getAttribute("disabled") == null;
+})) {
+	addHandle(booleans, function(elem, name, isXML) {
+		var val;
+		if (!isXML) {
+			return elem[name] === true ? name.toLowerCase() :
+				(val = elem.getAttributeNode(name)) && val.specified ?
+					val.value :
+					null;
+		}
+	});
+}
+
+/* EXPOSE */
 _quanter = window.Quanter;
+
 
 /**
  * Restores the original value of `window.Quanter` if it was overwritten,
@@ -1471,15 +1719,28 @@ Quanter.noConflict = function() {
 	return Quanter;
 };
 
+
+
 // Register as named AMD module,
 // since Quanter can be concatenated with other files that may use define
-typeof define === "function" && define.amd ?
+if (typeof define === "function" && define.amd) {
   define(function() {
     return Quanter;
-  // Expose Quanter identifiers, Even in AMD and CommonJS for browser emulators
-  }) : (typeof module === "object" ? module.exports = Quanter : window.Quanter = Quanter);
+  })
+}
 
+// Quanter requires that there be a global window in Common-JS like environments
+else if (typeof module === "object" && module.exports) {
+  module.exports = Quanter;
+}
 
+// Otherwise,
+// Expose Quanter identifiers
+// even in AMD and CommonJS for browser emulators
+else {
+  window.Quanter = Quanter;
+}
 
-return Quanter;
+/* EXPOSE */
+
 })(window);

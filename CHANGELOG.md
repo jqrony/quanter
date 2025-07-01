@@ -1,5 +1,14 @@
 # Release Notes
 
+## [v4.0.0](https://github.com/jqrony/quanter/compare/v3.0.0...v4.0.0) - 01-07-2025
+
+* Rename pseudo `:model` to `:modal` to target elements that are displayed as modals. [@indianmodassir](https://github.com/indianmodassir)
+* Add new pseudo `:rcontains` for selecting elements whose text content matches a given source. [@indianmodassir](https://github.com/indianmodassir)
+* Add new pseudo `:ircontains` for **case-insensitive** source matching of element text content. [@indianmodassir](https://github.com/indianmodassir)
+* Add new pseudo `:open` to target open element (e.g., details, dialog) [@indianmodassir](https://github.com/indianmodassir)
+* Add new pseudo `picture-in-picture` to target active picture-in-picture element [@indianmodassir](https://github.com/indianmodassir)
+* Add new pseudo `:fullscreen` to target active fullscreen element [@indianmodassir](https://github.com/indianmodassir)
+
 ## [v3.0.0](https://github.com/jqrony/quanter/compare/v2.0.1...v3.0.0) - 30-06-2025
 
 * Remove temporary pseudo `:xpath` form Quanter [@indianmodassir](https://github.com/indianmodassir)

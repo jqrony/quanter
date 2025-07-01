@@ -1,5 +1,5 @@
 /**
- * Quanter JavaScript CSS Selector Engine v3.0.1
+ * Quanter JavaScript CSS Selector Engine v4.0.0
  * A lightweight CSS selector engine designed to be easily select DOM-Elements.
  * https://github.com/jqrony/quanter
  * 
@@ -9,13 +9,13 @@
  * 
  * @author Indian Modassir
  * 
- * Date: 25-06-2025 08:39 PM
+ * Date: 01-07-2025 12:28 PM
  */
 (function(window) {
 
 "use strict";
 
-var version = "3.0.1",
+var version = "4.0.0",
   i,
   support,
   uniqueSort,
@@ -126,6 +126,7 @@ var version = "3.0.1",
   rinputs = /^(?:input|select|textarea|button)/i,
   rplayable = /^(?:audio|video)$/i,
   rheader = /^h[1-6]$/i,
+  ropen = /^(?:dialog|details)$/,
   rhtml = /HTML$/i,
   rnative = /^[^{]+\{\s*\[native \w/,
   rnodeType = /^(?:1|9|11)$/,
@@ -1162,8 +1163,7 @@ Expr = Quanter.selectors = {
     "CLASS": markFunction(function(className) {
       return function(elem) {
         var pattern;
-				return (pattern=new RegExp("(^|" + whitespace + ")" +
-					className + "(" + whitespace + ")|$")) &&
+				return (pattern = new RegExp("(^|" + whitespace + ")" + className + "(" + whitespace + "|$)")) &&
 					pattern.test(attrVal(elem, "class") || elem.className || "");
       };
     }),
@@ -1307,6 +1307,18 @@ Expr = Quanter.selectors = {
         ).toLowerCase().indexOf(text.toLowerCase()) > -1;
       };
     }),
+    "rcontains": markFunction(function(source) {
+      return function(elem) {
+        var regex = new RegExp(source);
+        return regex.test(elem.textContent || getText(elem));
+      };
+    }),
+    "ircontains": markFunction(function(source) {
+      return function(elem) {
+        var regex = new RegExp(source, "i");
+        return regex.test(elem.textContent || getText(elem));
+      };
+    }),
 
     /* Miscellaneous */
     "target": function(elem) {
@@ -1365,22 +1377,29 @@ Expr = Quanter.selectors = {
     /* CSS3 predefine default pseudo */
     "indeterminate": attrPseudo("input", "indeterminate"),
     "required": attrPseudo("input", "required"),
-    "readonly": attrPseudo("input", "readOnly"),
+    "read-only": attrPseudo("input", "readOnly"),
+    "open": attrPseudo(ropen, "open"),
     "link": attrPseudo("a", "href"),
     "out-of-range": rangePseudo(false),
     "in-range": rangePseudo(true),
-    "model": attrPseudo("input", "open"),
+    "modal": attrPseudo("dialog", "open"),
     "paused": attrPseudo(rplayable, "paused"),
     "muted": attrPseudo(rplayable, "muted"),
     "invalid": validInputPseudo(false),
     "valid": validInputPseudo(true),
     "autoplay": attrPseudo(rplayable, "autoplay"),
     "optional": attrPseudo("input", "required", true),
+    "picture-in-picture": function(elem) {
+      return indexOf.call([document.pictureInPictureElement], elem) > -1;
+    },
     "playing": function(elem) {
       return rplayable.test(elem.nodeName) && !(elem.paused && elem.muted);
     },
 
-    /* Active or Complex pseudos */
+    /* Active Element or other pseudos */
+    "fullscreen": function(elem) {
+      return indexOf.call([document.fullscreenElement], elem) > -1;
+    },
     "active": function(elem) {
       return elem.activeElement;
     },

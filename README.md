@@ -2,6 +2,7 @@
 
 > A Pure-JavaScript, CSS selector engine designed to be easily select DOM-Elements.
 
+![license](https://img.shields.io/github/license/jqrony/quanter?style=flat-square&color=blue)
 ![author](https://img.shields.io/badge/Author-Indian%20Modassir-blue?style=flat-square)
 [![downloads](https://img.shields.io/npm/dt/quanter?color=blue&style=flat-square)](https://www.npmjs.com/package/quanter)
 [![jsDelivr Hits](https://img.shields.io/jsdelivr/npm/hm/quanter?style=flat-square)](https://www.jsdelivr.com/package/npm/quanter)
@@ -32,7 +33,7 @@ Below are some of the most common ways to include Quanter.
 ### Browser
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/quanter@3.0.1/dist/quanter.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quanter@4.0.0/dist/quanter.min.js"></script>
 ```
 
 ### Webpack / Browserify / Babel
@@ -45,7 +46,7 @@ import quanter from "quanter";
 ## Features
 ### Multi Selector
 
-The `Quanter(selector, context, results, seed)` method allows for flexible element selection using a wide range of selector types:
+The `Quanter` method allows for flexible element selection using a wide range of selector types:
 
 - ✅ **CSS Selectors**  
   Supports tag names, class selectors (`.class`), ID selectors (`#id`), attribute selectors (`[attr=value]`), and pseudo-classes (like `:nth-child`, `:first-of-type`, etc.).
@@ -57,7 +58,7 @@ The `Quanter(selector, context, results, seed)` method allows for flexible eleme
 
 #### Signature and Parameters
 ```js
-Quanter.XPathSelect(string expr, DOMNode context, Array results, Array seed);
+Quanter.XPathSelect(String expr, DOMNode context, Array results, Array seed);
 ```
 
 - `selector` [required] A CSS Selector or XPath Expression (comma separated or non-comma separated)
@@ -69,7 +70,7 @@ Learn for more [documentation](http://github.com/jqrony/quanter/wiki)
 
 ### XPath Selector
 
-The `Quanter.XPathSelect(expr, context, results, seed)` method is a specialized function built to handle **full XPath syntax**, offering complete support for:
+The `XPathSelect` method is a specialized function built to handle **full XPath syntax**, offering complete support for:
 
 - Complex queries
 - Nested expressions
@@ -80,7 +81,7 @@ The `Quanter.XPathSelect(expr, context, results, seed)` method is a specialized 
 
 #### Signature and Parameters
 ```js
-Quanter.XPathSelect(string expr, DOMNode context, Array results, Array seed);
+Quanter.XPathSelect(String expr, DOMNode context, Array results, Array seed);
 ```
 
 - `expr`[required] A XPath Expression (comma separated or non-comma separated)

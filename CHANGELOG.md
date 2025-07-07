@@ -1,5 +1,10 @@
 # Release Notes
 
+## [v4.1.0](https://github.com/jqrony/quanter/compare/v3.0.0...v4.0.0) - 07-07-2025
+
+* [4.x] Add new pseudo `:popover-open` to target elements that have their popover currently open. [@indianmodassir](https://github.com/indianmodassir)
+* [4.x] Add new pseudo `:defined` to target custom elements that have been defined (registered). [@indianmodassir](https://github.com/indianmodassir)
+
 ## [v4.0.0](https://github.com/jqrony/quanter/compare/v3.0.0...v4.0.0) - 01-07-2025
 
 * Rename pseudo `:model` to `:modal` to target elements that are displayed as modals. [@indianmodassir](https://github.com/indianmodassir)

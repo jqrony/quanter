@@ -1,5 +1,5 @@
 /**
- * Quanter JavaScript CSS Selector Engine v4.0.0
+ * Quanter JavaScript CSS Selector Engine v4.1.1
  * A lightweight CSS selector engine designed to be easily select DOM-Elements.
  * https://github.com/jqrony/quanter
  * 
@@ -15,7 +15,7 @@
 
 "use strict";
 
-var version = "4.0.0",
+var version = "4.1.1",
   i,
   support,
   uniqueSort,
@@ -25,7 +25,7 @@ var version = "4.0.0",
   tokenize,
   select,
   nodeName,
-	contains,
+  contains,
   _quanter,
   attrVal,
 
@@ -34,31 +34,31 @@ var version = "4.0.0",
   document,
   docElem,
   setDocument,
-
-	// Instance array-obj methods
+  
+  // Instance array-obj methods
   hasOwn  = ({}).hasOwnProperty,
-	arr     = [],
+  arr     = [],
   indexOf = arr.indexOf,
   concat  = arr.concat,
-	push    = arr.push,
+  push    = arr.push,
   slice   = arr.slice,
-
+  
   // Instance-specific data
-	expando = "quanter" + 1 * Date.now(),
-	preferredDoc = window.document,
-
+  expando = "quanter" + 1 * Date.now(),
+  preferredDoc = window.document,
+  
   // Used for iframes
-	// See setDocument()
-	// Removing the function wrapper causes a "Permission Denied"
-	// error in IE
-	unloadHandler = function() {
+  // See setDocument()
+  // Removing the function wrapper causes a "Permission Denied"
+  // error in IE
+  unloadHandler = function() {
 		setDocument();
 	},
-
+  
   // Used for QSA Elements
-	// Selecting all elements using context.querySelectorAll()
-	// Returns NodeList[]
-	selectAll = function(selector, context) {
+  // Selecting all elements using context.querySelectorAll()
+  // Returns NodeList[]
+  selectAll = function(selector, context) {
 		return (context || document).querySelectorAll(selector);
 	},
 
@@ -68,14 +68,14 @@ var version = "4.0.0",
 
   // Regular expressions sources
   // http://www.w3.org/TR/css3-selectors/#whitespace
-	whitespace = "[\\x20\\t\\r\\n\\f]",
+  whitespace = "[\\x20\\t\\r\\n\\f]",
 
   // https://www.w3.org/TR/css-syntax-3/#ident-token-diagram
-	identifier = "(?:\\\\[\\da-fA-F]{1,6}" + whitespace +
+  identifier = "(?:\\\\[\\da-fA-F]{1,6}" + whitespace +
   "?|\\\\[^\\r\\n\\f]|[\\w-]|[^\0-\\x7f])+",
 
   // Attribute selectors: http://www.w3.org/TR/selectors/#attribute-selectors
-	attributes = "\\[" + whitespace + "*(" + identifier + ")(?:" + whitespace +
+  attributes = "\\[" + whitespace + "*(" + identifier + ")(?:" + whitespace +
 
   // Operator (capture 2)
   "*([*^$|!~]?=)" + whitespace +
@@ -86,7 +86,7 @@ var version = "4.0.0",
   whitespace + "*\\]",
 
   // Pseudos selectors: https://www.w3.org/TR/selectors/#pseudo-classes
-	pseudos = ":(" + identifier + ")(?:\\((" +
+  pseudos = ":(" + identifier + ")(?:\\((" +
 
   // 1. quoted (capture 3; capture 4 or capture 5)
   "('((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\")|" +
@@ -98,8 +98,8 @@ var version = "4.0.0",
   ".*" + ")\\)|)",
 
   // Regular Expressions
-	// https://www.w3.org/TR/CSS2/text.html#egbidiwscollapse
-	// Leading and non-escaped trailing whitespace,
+  // https://www.w3.org/TR/CSS2/text.html#egbidiwscollapse
+  // Leading and non-escaped trailing whitespace,
   // capturing some non-whitespace characters preceding the latter
 	rwhitespace = new RegExp(whitespace + "+", "g"),
 
@@ -146,11 +146,11 @@ var version = "4.0.0",
   /* MATCH-EXPR */
   matchExpr = {
     "ID": new RegExp("^#(" + identifier + ")"),
-		"CLASS": new RegExp("^\\.(" + identifier + ")"),
-		"TAG": new RegExp("^(" + identifier + "|[*])"),
-		"ATTR": new RegExp("^" + attributes),
-		"PSEUDO": new RegExp("^" + pseudos),
-		"CHILD": new RegExp("^:(only|first|last|nth|nth-last)-(child|of-type)(?:\\(" +
+    "CLASS": new RegExp("^\\.(" + identifier + ")"),
+    "TAG": new RegExp("^(" + identifier + "|[*])"),
+    "ATTR": new RegExp("^" + attributes),
+    "PSEUDO": new RegExp("^" + pseudos),
+    "CHILD": new RegExp("^:(only|first|last|nth|nth-last)-(child|of-type)(?:\\(" +
 			whitespace + "*(even|odd|(([+-]|)(\\d*)n|)" + whitespace + "*(?:([+-]|)" +
 			whitespace + "*(\\d+)|))" + whitespace + "*\\)|)", "i"),
 
@@ -243,7 +243,7 @@ function Quanter(selector, context, results, seed) {
   }
 
   // All others complex selectors
-	return select(selector.replace(rtrim, "$1"), context, results, seed);
+  return select(selector.replace(rtrim, "$1"), context, results, seed);
 }
 
 /**
@@ -318,27 +318,27 @@ setDocument = Quanter.setDocument = function(node) {
   var combinator, hasCompare, subWindow,
 		doc = node ? node.ownerDocument || node : preferredDoc,
     relative = Expr.relative;
-
+    
   // Return early if doc is invalid or already selected
-	// Support: IE 11+, Edge 17 - 18+
-	// IE/Edge sometimes throw a "Permission denied" error when strict-comparing
-	// two documents; shallow comparisons work.
-	// eslint-disable-next-line eqeqeq
+  // Support: IE 11+, Edge 17 - 18+
+  // IE/Edge sometimes throw a "Permission denied" error when strict-comparing
+  // two documents; shallow comparisons work.
+  // eslint-disable-next-line eqeqeq
   if (doc === document || doc.nodeType !== 9 || !doc.documentElement) {
     return document;
   }
-
+  
   // Update global variables
-	document 			 = doc;
-	docElem				 = document.documentElement;
-	documentIsHTML = !isXML(document);
-
+  document 			 = doc;
+  docElem				 = document.documentElement;
+  documentIsHTML = !isXML(document);
+  
   // Support: IE 9 - 11+, Edge 12 - 18+
-	// Accessing iframe documents after unload throws "permission denied" errors
-	// Support: IE 11+, Edge 17 - 18+
-	// IE/Edge sometimes throw a "Permission denied" error when strict-comparing
-	// two documents; shallow comparisons work.
-	// eslint-disable-next-line eqeqeq
+  // Accessing iframe documents after unload throws "permission denied" errors
+  // Support: IE 11+, Edge 17 - 18+
+  // IE/Edge sometimes throw a "Permission denied" error when strict-comparing
+  // two documents; shallow comparisons work.
+  // eslint-disable-next-line eqeqeq
   if (preferredDoc != document &&
     (subWindow = document.defaultView) && subWindow.top !== subWindow) {
 
@@ -348,27 +348,27 @@ setDocument = Quanter.setDocument = function(node) {
     // Support: IE 9 - 10 only
     subWindow.attachEvent && subWindow.attachEvent("onunload", unloadHandler);
   }
-
+  
   // Support: IE 8 - 11+, Edge 12 - 18+, Chrome <=16 - 25 only, Firefox <=3.6 - 31 only,
-	// Safari 4 - 5 only, Opera <=11.6 - 12.x only
-	// IE/Edge & older browsers don't support the :scope pseudo-class.
-	// Support: Safari 6.0 only
-	// Safari 6.0 supports :scope but it's an alias of :root there.
+  // Safari 4 - 5 only, Opera <=11.6 - 12.x only
+  // IE/Edge & older browsers don't support the :scope pseudo-class.
+  // Support: Safari 6.0 only
+  // Safari 6.0 supports :scope but it's an alias of :root there.
   support.scope = assert(function(el) {
     docElem.appendChild(el).appendChild(document.createElement("div"));
     return invoke(el, "querySelectorAll", ":scope fieldset div").length;
   });
 
   // Support: IE<8
-	// Verify that getAttribute really returns attributes and not properties
-	// (excepting IE8 booleans)
+  // Verify that getAttribute really returns attributes and not properties
+  // (excepting IE8 booleans)
   support.attributes = assert(function(el) {
     el.className = "s";
     return !el.getAttribute("className");
   });
-
+  
   // Verify that children really returns children and exists element node
-	// (excepting IE8 booleans)
+  // (excepting IE8 booleans)
   support.children = assert(function(el) {
     el.appendChild(document.createElement("div"));
     return !!el.children.length;
@@ -381,27 +381,33 @@ setDocument = Quanter.setDocument = function(node) {
     el.appendChild(document.createComment(""));
 		return !el.getElementsByTagName("*").length;
   });
-
+  
   // Support: IE<10
-	// Check if getElementById returns elements by name
-	// The broken getElementById methods don't pick up programmatically-set names,
-	// so use a roundabout getElementsByName test
+  // Check if getElementById returns elements by name
+  // The broken getElementById methods don't pick up programmatically-set names,
+  // so use a roundabout getElementsByName test
   support.getById = assert(function(el) {
     docElem.appendChild(el).id = expando;
     return !invoke(document, "getElementsByName", expando).length;
   });
-
+  
   // Support: IE<9
   // Check if getElementsByClassName
   support.getByClass = rnative.test(document.getElementsByClassName);
-
+  
   // Support: Chrome, Firefox, Safari, Edge, Opera
   // Check if XPath selenium evaluate with document
   support.XPath = rnative.test(document.evaluate);
-
+  
   // Support: IE8+
   // Check if querySelectorAll
   support.QSA = rnative.test(document.querySelectorAll);
+  
+  // Support: Modern browsers only
+  // Check if the Custom Elements API is available
+  // Ensures 'customElements' is an object and a valid instance of CustomElementRegistry
+  // Older browsers or polyfilled environments may not support this natively
+  support.customElements = typeof customElements === "object" && customElements instanceof CustomElementRegistry;
 
   /* CLASS */
   Expr.find["CLASS"] = support.getByClass ?
@@ -442,11 +448,11 @@ setDocument = Quanter.setDocument = function(node) {
       var elem,
         tmp = [],
         i = 0,
-
-				// By happy coincidence, a (broken) gEBTN appears on DocumentFragment nodes
-				results = context.getElementsByTagName(tag);
-
-			// Filter out possible comments
+        
+        // By happy coincidence, a (broken) gEBTN appears on DocumentFragment nodes
+        results = context.getElementsByTagName(tag);
+        
+      // Filter out possible comments
 			if ( tag === "*" ) {
 				while ( ( elem = results[ i++ ] ) ) {
 					if ( elem.nodeType === 1 ) {
@@ -1389,19 +1395,30 @@ Expr = Quanter.selectors = {
     "valid": validInputPseudo(true),
     "autoplay": attrPseudo(rplayable, "autoplay"),
     "optional": attrPseudo("input", "required", true),
+
+    /* Active Element or other pseudos */
     "picture-in-picture": function(elem) {
       return indexOf.call([document.pictureInPictureElement], elem) > -1;
+    },
+    "popover-open": function(elem) {
+      return elem.matches && elem.matches(":popover-open");
+    },
+    "fullscreen": function(elem) {
+      return indexOf.call([document.fullscreenElement], elem) > -1;
     },
     "playing": function(elem) {
       return rplayable.test(elem.nodeName) && !(elem.paused && elem.muted);
     },
-
-    /* Active Element or other pseudos */
-    "fullscreen": function(elem) {
-      return indexOf.call([document.fullscreenElement], elem) > -1;
-    },
     "active": function(elem) {
       return elem.activeElement;
+    },
+    "defined": function(elem) {
+      var tagName = nodeName(elem);
+      return support.customElements ? !!customElements.get(tagName)
+
+        // Support: Older browsers without Custom Elements API
+        // Fall back to checking if the tag name looks like a custom element
+        : tagName.indexOf("-") > -1;
     },
     "inline": function(elem) {
       return ritags.test(elem.nodeName);

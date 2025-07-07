@@ -33,7 +33,7 @@ Below are some of the most common ways to include Quanter.
 ### Browser
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/quanter@4.0.0/dist/quanter.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quanter@4.1.1/dist/quanter.min.js"></script>
 ```
 
 ### Webpack / Browserify / Babel
@@ -58,7 +58,7 @@ The `Quanter` method allows for flexible element selection using a wide range of
 
 #### Signature and Parameters
 ```js
-Quanter.XPathSelect(String expr, DOMNode context, Array results, Array seed);
+Quanter(String expr, DOMNode context, Array results, Array seed);
 ```
 
 - `selector` [required] A CSS Selector or XPath Expression (comma separated or non-comma separated)

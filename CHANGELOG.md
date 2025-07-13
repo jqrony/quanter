@@ -1,6 +1,12 @@
 # Release Notes
 
-## [v4.1.0](https://github.com/jqrony/quanter/compare/v3.0.0...v4.0.0) - 07-07-2025
+## [v4.2.0](https://github.com/jqrony/quanter/compare/v4.1.0...v4.2.0) - 13-07-2025
+
+* Add new pseudo `:xpath` to target elements XPath Expression through [@indianmodassir](https://github.com/indianmodassir)
+* Add new pseudo `:role` to target elements role attribute value [@indianmodassir](https://github.com/indianmodassir)
+* Fix an issue in pseudo `:defined` where this method not proper working [@indianmodassir](https://github.com/indianmodassir)
+
+## [v4.1.0](https://github.com/jqrony/quanter/compare/v4.0.0...v4.1.0) - 07-07-2025
 
 * [4.x] Add new pseudo `:popover-open` to target elements that have their popover currently open. [@indianmodassir](https://github.com/indianmodassir)
 * [4.x] Add new pseudo `:defined` to target custom elements that have been defined (registered). [@indianmodassir](https://github.com/indianmodassir)

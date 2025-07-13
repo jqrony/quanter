@@ -1,5 +1,5 @@
 /**
- * Quanter JavaScript CSS Selector Engine v4.1.1
+ * Quanter JavaScript CSS Selector Engine v4.2.0
  * A lightweight CSS selector engine designed to be easily select DOM-Elements.
  * https://github.com/jqrony/quanter
  * 
@@ -15,7 +15,7 @@
 
 "use strict";
 
-var version = "4.1.1",
+var version = "4.2.0",
   i,
   support,
   uniqueSort,
@@ -235,8 +235,8 @@ function Quanter(selector, context, results, seed) {
       // Take advantage of querySelectorAll
       if (support.QSA) {
         try {
-          push.apply(results, selectAll(selector, context));
-          return results;
+          // push.apply(results, selectAll(selector, context));
+          // return results;
         } catch(_e) {}
       }
     }
@@ -1339,6 +1339,29 @@ Expr = Quanter.selectors = {
       }
     }),
 
+    /* Added version >= 4.2.0 */
+    "xpath": markFunction(function(expr) {
+      return function(elem) {
+        return Quanter.XPathSelect(expr, elem);
+      };
+    }),
+
+    // "Whether an element is represented by a :role() selector
+		// is based solely on the element's role value
+    // The matching of C against the element's role value is performed case-insensitively.
+    "role": markFunction(function(role) {
+
+      // Change case role toLowerCase
+      role = (role || "").toLowerCase();
+      
+      return function(elem) {
+        var elemRole;
+        if ((elemRole = documentIsHTML ? elem.role : attrVal(elem, "role"))) {
+          return role === elemRole.toLowerCase();
+        }
+      };
+    }),
+
     // "Whether an element is represented by a :lang() selector
 		// is based solely on the element's language value
 		// being equal to the identifier C,
@@ -1382,8 +1405,8 @@ Expr = Quanter.selectors = {
 
     /* CSS3 predefine default pseudo */
     "indeterminate": attrPseudo("input", "indeterminate"),
-    "required": attrPseudo("input", "required"),
     "read-only": attrPseudo("input", "readOnly"),
+    "required": attrPseudo("input", "required"),
     "open": attrPseudo(ropen, "open"),
     "link": attrPseudo("a", "href"),
     "out-of-range": rangePseudo(false),
@@ -1413,12 +1436,9 @@ Expr = Quanter.selectors = {
       return elem.activeElement;
     },
     "defined": function(elem) {
-      var tagName = nodeName(elem);
-      return support.customElements ? !!customElements.get(tagName)
-
-        // Support: Older browsers without Custom Elements API
-        // Fall back to checking if the tag name looks like a custom element
-        : tagName.indexOf("-") > -1;
+      var tag = nodeName(elem);
+      return document.createElement(tag).constructor !== HTMLElement ||
+        customElements.get(tag);
     },
     "inline": function(elem) {
       return ritags.test(elem.nodeName);

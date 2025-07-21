@@ -33,7 +33,7 @@ Below are some of the most common ways to include Quanter.
 ### Browser
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/quanter@4.2.0/dist/quanter.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quanter@4.3.0/dist/quanter.min.js"></script>
 ```
 
 ### Webpack / Browserify / Babel

@@ -1,5 +1,5 @@
 /**
- * Quanter JavaScript CSS Selector Engine v4.2.0
+ * Quanter JavaScript CSS Selector Engine v4.3.0
  * A lightweight CSS selector engine designed to be easily select DOM-Elements.
  * https://github.com/jqrony/quanter
  * 
@@ -15,7 +15,7 @@
 
 "use strict";
 
-var version = "4.2.0",
+var version = "4.3.0",
   i,
   support,
   uniqueSort,
@@ -235,8 +235,8 @@ function Quanter(selector, context, results, seed) {
       // Take advantage of querySelectorAll
       if (support.QSA) {
         try {
-          // push.apply(results, selectAll(selector, context));
-          // return results;
+          push.apply(results, selectAll(selector, context));
+          return results;
         } catch(_e) {}
       }
     }
@@ -969,8 +969,15 @@ function rangePseudo(inRange) {
 function hiddenPseudo(hidden) {
   return function(elem) {
     var visibility = style(elem, "visibility"),
-				display = style(elem, "display");
-			return (visibility === "hidden" || display === "none" || elem.hidden) === hidden;
+			display = style(elem, "display");
+
+    // Support: only HTML elements that support the 'open' attribute
+    // (e.g., <details>, <dialog>)
+    if ("open" in elem) {
+      return elem.open !== hidden;
+    }
+
+		return (visibility === "hidden" || display === "none" || elem.hidden) === hidden;
   };
 }
 
@@ -1339,7 +1346,7 @@ Expr = Quanter.selectors = {
       }
     }),
 
-    /* Added version >= 4.2.0 */
+    /* Added version >= 4.3.0 */
     "xpath": markFunction(function(expr) {
       return function(elem) {
         return Quanter.XPathSelect(expr, elem);
@@ -1460,6 +1467,9 @@ Expr = Quanter.selectors = {
     },
     "offset": function(elem) {
       return style(elem, "position") !== "static";
+    },
+    "fixed": function(elem) {
+      return style(elem, "position") === "fixed";
     },
     "selected": function(elem) {
       // Accessing this property makes selected-by-default
@@ -1677,6 +1687,7 @@ select = Quanter.select = function(selector, context, results, seed) {
       src = [context];
     }
 
+    // Go through to the start retriving token
     while((token = tokens[j++])) {
       type = token.type;
       fn = Expr.combinators[type] || Expr.filter[type].apply(null, token.matches);

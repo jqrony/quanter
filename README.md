@@ -2,14 +2,14 @@
 
 > A Pure-JavaScript, CSS selector engine designed to be easily select DOM-Elements.
 
-![license](https://img.shields.io/github/license/jqrony/quanter?style=flat-square&color=blue)
+![license](https://img.shields.io/github/license/jsvibe/quanter?style=flat-square&color=blue)
 ![author](https://img.shields.io/badge/Author-Indian%20Modassir-blue?style=flat-square)
 [![downloads](https://img.shields.io/npm/dt/quanter?color=blue&style=flat-square)](https://www.npmjs.com/package/quanter)
 [![jsDelivr Hits](https://img.shields.io/jsdelivr/npm/hm/quanter?style=flat-square)](https://www.jsdelivr.com/package/npm/quanter)
 [![downloads month](https://img.shields.io/npm/dm/quanter?style=flat-square)](https://www.npmjs.com/package/quanter)
 
-- [Documentation](http://github.com/jqrony/quanter/wiki)
-- [Browser support](https://github.com/jqrony/quanter/wiki/#browsers)
+- [Documentation](http://github.com/jsvibe/quanter/wiki)
+- [Browser support](https://github.com/jsvibe/quanter/wiki/#browsers)
 
 ## How to install Quanter
 To include Quanter in [Node](https://nodejs.org/), first install with npm.
@@ -22,7 +22,7 @@ npm install quanter
 Clone a copy of the main Sizzle git repo by running:
 
 ```bash
-git clone git://github.com/jqrony/quanter.git
+git clone git://github.com/jsvibe/quanter.git
 ```
 
 In the `quanter/dist` folder you will find build version of sizzle along with the minified copy and associated map file.
@@ -33,7 +33,7 @@ Below are some of the most common ways to include Quanter.
 ### Browser
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/quanter@4.3.0/dist/quanter.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quanter@4.4.0/dist/quanter.min.js"></script>
 ```
 
 ### Webpack / Browserify / Babel
@@ -66,7 +66,110 @@ Quanter(String expr, DOMNode context, Array results, Array seed);
 - `results` [optional] An optional array to which the matched elements will be added.
 - `seed` [optional] A set of elements to match against
 
-Learn for more [documentation](http://github.com/jqrony/quanter/wiki)
+## Combinators Supports
+
+|Combinator|Supported|
+|:--------|:--------:|
+|\*|✓|
+|+|✓|
+|>|✓|
+|<|✓|
+|~|✓|
+|` `|✓|
+
+## Pseudos Supports
+|Pseudos|Supported|
+|:--------|:--------:|
+:nth-last-of-type(n)|✓|
+:nth-of-type(n)|✓|
+:first-of-type|✓|
+:first-child|✓|
+:last-child|✓|
+:last-of-type|✓|
+:nth-child(n)|✓|
+:only-child|✓|
+:only-of-type|✓|
+:nth-last-child(n)|✓|
+:viewport|✓|
+:theme|✓|
+:contains|✓|
+:icontains|✓|
+:rcontains|✓|
+:ircontains|✓|
+:target|✓|
+:has|✓|
+:xpath|✓|
+:role|✓|
+:lang|✓|
+:disabled|✓|
+:enabled|✓|
+:hidden|✓|
+:visible|✓|
+:get|✓|
+:post|✓|
+:filter|✓|
+:not|✓|
+:indeterminate|✓|
+:read-only|✓|
+:required|✓|
+:open|✓|
+:link|✓|
+:out-of-range|✓|
+:in-range|✓|
+:modal|✓|
+:paused|✓|
+:muted|✓|
+:invalid|✓|
+:valid|✓|
+:autoplay|✓|
+:optional|✓|
+:picture-in-picture|✓|
+:popover-open|✓|
+:fullscreen|✓|
+:playing|✓|
+:active|✓|
+:defined|✓|
+:inline|✓|
+:root|✓|
+:editable|✓|
+:focus|✓|
+:checked|✓|
+:offset|✓|
+:fixed|✓|
+:selected|✓|
+:parent|✓|
+:empty|✓|
+:header|✓|
+:button|✓|
+:submit|✓|
+:reset|✓|
+:input|✓|
+:radio|✓|
+:checkbox|✓|
+:url|✓|
+:file|✓|
+:password|✓|
+:email|✓|
+:color|✓|
+:number|✓|
+:text|✓|
+:animated|✓|
+:first|✓|
+:last|✓|
+:eq(n)|✓|
+:odd|✓|
+:even|✓|
+:lt|✓|
+:gt|✓|
+:importmap|✓|
+:module|✓|
+:json|✓|
+:ecmascript|✓|
+:module|✓|
+:ecmascript|✓|
+:json|✓|
+
+Learn for more [documentation](http://github.com/jsvibe/quanter/wiki)
 
 ### XPath Selector
 
@@ -89,4 +192,4 @@ Quanter.XPathSelect(String expr, DOMNode context, Array results, Array seed);
 - `results` [optional] An optional array to which the matched elements will be added.
 - `seed` [optional] A set of elements to match against
 
-Learn for more [documentation](http://github.com/jqrony/quanter/wiki)
+Learn for more [documentation](http://github.com/jsvibe/quanter/wiki)

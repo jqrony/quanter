@@ -1,11 +1,11 @@
 /**
- * Quanter JavaScript CSS Selector Engine v4.3.0
+ * Quanter JavaScript CSS Selector Engine v4.4.0
  * A lightweight CSS selector engine designed to be easily select DOM-Elements.
- * https://github.com/jqrony/quanter
+ * https://github.com/jsvibe/quanter
  * 
  * Copyright JS Foundation and other contributors
  * Released under the MIT license
- * https://github.com/jqrony/quanter/blob/main/LICENSE
+ * https://github.com/jsvibe/quanter/blob/main/LICENSE
  * 
  * @author Indian Modassir
  * 
@@ -15,7 +15,7 @@
 
 "use strict";
 
-var version = "4.3.0",
+var version = "4.4.0",
   i,
   support,
   uniqueSort,
@@ -803,7 +803,7 @@ getText = Quanter.getText = function(elem) {
   } else if (rnodeType.test(nodeType)) {
 
     // Use textContent for elements
-		// innerText usage removed for consistency of new lines (jQrony #11153)
+		// innerText usage removed for consistency of new lines (jsVibe #11153)
     if (typeof elem.textContent === "string") {
       return elem.textContent;
     } else {
@@ -1085,6 +1085,7 @@ Expr = Quanter.selectors = {
       match[1] = tokenize(selector || tag + attr());
       return match;
     },
+
     "CHILD": function(match) {
       var selector = ":" + (!isNaN(+match[1]) ? "nth-of-type(" : "has(") + match[1] + ")",
         tokens = tokenize(selector);
@@ -1092,6 +1093,7 @@ Expr = Quanter.selectors = {
       match[1] = tokens;
       return match;
     },
+
     "SIBLING": function(match) {
       var selector = match[3] ? "~" : match[1] || match[4] ? " " : ">";
       match[1] = [{value: selector, type: selector}];
@@ -1104,6 +1106,7 @@ Expr = Quanter.selectors = {
     "CLASS": function(match) {
       return match.slice(0, 2);
     },
+
     "ATTR": function(match) {
       // Move the given value to match[3] whether quoted or unquoted
 			match[3] = (match[3] || match[4] || match[5] || "");
@@ -1114,12 +1117,15 @@ Expr = Quanter.selectors = {
 
 			return match.slice(0, 4);
     },
+
     "TAG": function(match) {
       return match.slice(0, 2);
     },
+
     "ID": function(match) {
       return match.slice(0, 2);
     },
+
     "CHILD": function(match) {
       /* matches from matchExpr["CHILD"]
 			  1 type (only|nth|...)
@@ -1154,6 +1160,7 @@ Expr = Quanter.selectors = {
 
       return match;
     },
+
     "PSEUDO": function(match) {
       // Accept quoted ['|"] arguments as-is
 			if (match[3]) {
@@ -1173,6 +1180,7 @@ Expr = Quanter.selectors = {
         return tagName === "*" ? true : nodeName(elem, tagName);
       };
     }),
+
     "CLASS": markFunction(function(className) {
       return function(elem) {
         var pattern;
@@ -1180,6 +1188,7 @@ Expr = Quanter.selectors = {
 					pattern.test(attrVal(elem, "class") || elem.className || "");
       };
     }),
+
     "ATTR": markFunction(function(name, operator, check) {
       return function(elem) {
         var result = Quanter.attr(elem, name);
@@ -1205,6 +1214,7 @@ Expr = Quanter.selectors = {
 				/* eslint-enable max-len */
       };
     }),
+
     "CHILD": markFunction(function(type, what, _arg, first, last) {
       var simple = type.slice(0, 3) !== "nth",
 				forward = type.slice(-4) !== "last",
@@ -1279,6 +1289,7 @@ Expr = Quanter.selectors = {
           }
         };
     }),
+
     "PSEUDO": markFunction(function(pseudo, arguemnt) {
 
       // pseudo-class names are case-insensitive
@@ -1304,14 +1315,17 @@ Expr = Quanter.selectors = {
     "viewport": function(elem) {
       return nodeName(elem, "meta") && elem.name === "viewport";
     },
+
     "theme": function(elem) {
       return nodeName(elem, "meta") && rthemes.test(elem.name);
     },
+
     "contains": markFunction(function(text) {
       return function(elem) {
         return (elem.textContent || getText(elem)).indexOf(text) > -1;
       };
     }),
+
     "icontains": markFunction(function(text) {
       return function(elem) {
         return (
@@ -1320,12 +1334,14 @@ Expr = Quanter.selectors = {
         ).toLowerCase().indexOf(text.toLowerCase()) > -1;
       };
     }),
+
     "rcontains": markFunction(function(source) {
       return function(elem) {
         var regex = new RegExp(source);
         return regex.test(elem.textContent || getText(elem));
       };
     }),
+
     "ircontains": markFunction(function(source) {
       return function(elem) {
         var regex = new RegExp(source, "i");
@@ -1346,7 +1362,7 @@ Expr = Quanter.selectors = {
       }
     }),
 
-    /* Added version >= 4.3.0 */
+    /* Added version >= 4.4.0 */
     "xpath": markFunction(function(expr) {
       return function(elem) {
         return Quanter.XPathSelect(expr, elem);
@@ -1430,47 +1446,66 @@ Expr = Quanter.selectors = {
     "picture-in-picture": function(elem) {
       return indexOf.call([document.pictureInPictureElement], elem) > -1;
     },
+
     "popover-open": function(elem) {
       return elem.matches && elem.matches(":popover-open");
     },
+
     "fullscreen": function(elem) {
       return indexOf.call([document.fullscreenElement], elem) > -1;
     },
+
     "playing": function(elem) {
       return rplayable.test(elem.nodeName) && !(elem.paused && elem.muted);
     },
+
     "active": function(elem) {
       return elem.activeElement;
     },
+
     "defined": function(elem) {
       var tag = nodeName(elem);
       return document.createElement(tag).constructor !== HTMLElement ||
         customElements.get(tag);
     },
+
     "inline": function(elem) {
       return ritags.test(elem.nodeName);
     },
+
     "root": function(elem) {
       return elem === docElem;
     },
+    // Support dir: ltr and rtl Only
+    "dir": markFunction(function(dir) {
+      return function(elem) {
+        return (elem.dir || style(elem, "direction")) === (dir || "ltr").toLowerCase();
+      };
+    }),
+
     "editable": function(elem) {
       return elem.contentEditable === "true";
     },
+
     "focus": function(elem) {
       return elem === elem.activeElement ||
         (!document.hasFocus && document.hasFocus()) && !!(elem.type || elem.href || ~elem.tabIndex);
     },
+
     "checked": function(elem) {
       // In CSS3, :checked should return both checked and selected elements
 			// http://www.w3.org/TR/2011/REC-css3-selectors-20110929/#checked
       return (nodeName(elem, "input") && !!elem.checked) || (nodeName(elem, "option") && !!elem.selected);
     },
+
     "offset": function(elem) {
       return style(elem, "position") !== "static";
     },
+
     "fixed": function(elem) {
       return style(elem, "position") === "fixed";
     },
+
     "selected": function(elem) {
       // Accessing this property makes selected-by-default
 			// options in Safari work properly
@@ -1478,6 +1513,7 @@ Expr = Quanter.selectors = {
       elem.parentNode && elem.parentNode.selectedIndex;
 			return elem.selected === true;
     },
+
     "parent": function(elem) {
       return !Expr.pseudos["empty"](elem)
     },
@@ -1500,12 +1536,15 @@ Expr = Quanter.selectors = {
     "header": function(elem) {
       return rheader.test(elem.nodeName);
     },
+
     "input": function(elem) {
       return rinputs.test(elem.nodeName);
     },
+
     "button": function(elem) {
       return nodeName(elem, "button") || (nodeName(elem, "input") && elem.type === "button");
     },
+
     "text": function(elem) {
       var attr;
       return nodeName(elem, "input") &&
@@ -1514,6 +1553,7 @@ Expr = Quanter.selectors = {
 				// New HTML5 attribute values (e.g., "search") appear with type==="text"
         ((attr = attrVal(elem, "type")) == null || attr.toLowerCase() === "text");
     },
+
     "animated": function(elem) {
       return nodeName(elem, "marquee") || !rnoAnimation.test(style(elem, "animation"));
     },
@@ -1522,26 +1562,32 @@ Expr = Quanter.selectors = {
     "first": function(_, i) {
       return i === 1;
     },
+
     "last": function(_, i, length) {
       return i === length;
     },
+
     "eq": markFunction(function(i) {
       return function(_, index, length) {
         return (i < 0 ? i + length : i) === --index;
       };
     }),
+
     "odd": function(_, i) {
       return !!(i % 2);
     },
+
     "even": function(_, i) {
       return !!((i + 1) % 2);
     },
+
     "lt": markFunction(function(i) {
       return function(_, index, length) {
         i = i < 0 ? i + length : i > length ? length : i;
         return i > --index;
       };
     }),
+    
     "gt": markFunction(function(i) {
       return function(_, index, length) {
         i = i < 0 ? i + length : i > length ? length : i;

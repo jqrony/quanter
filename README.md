@@ -10,6 +10,7 @@
 
 - [Documentation](http://github.com/jsvibe/quanter/wiki)
 - [Browser support](https://github.com/jsvibe/quanter/wiki/#browsers)
+- [Selector support](#selector-supports)
 
 ## How to install Quanter
 To include Quanter in [Node](https://nodejs.org/), first install with npm.
@@ -66,7 +67,34 @@ Quanter(String expr, DOMNode context, Array results, Array seed);
 - `results` [optional] An optional array to which the matched elements will be added.
 - `seed` [optional] A set of elements to match against
 
-## Combinators Supports
+Learn for more [documentation](http://github.com/jsvibe/quanter/wiki)
+
+### XPath Selector
+
+The `XPathSelect` method is a specialized function built to handle **full XPath syntax**, offering complete support for:
+
+- Complex queries
+- Nested expressions
+- Axes like `following-sibling`, `ancestor`, `descendant`
+- Functions like `contains()`, `starts-with()`, `text()`, etc.
+
+**Best Use:** When your use case requires powerful and deeply nested element queries using the full capabilities of XPath.
+
+#### Signature and Parameters
+```js
+Quanter.XPathSelect(String expr, DOMNode context, Array results, Array seed);
+```
+
+- `expr`[required] A XPath Expression (comma separated or non-comma separated)
+- `context` [optional] An element, document, or document fragment to use as the context for finding elements.
+- `results` [optional] An optional array to which the matched elements will be added.
+- `seed` [optional] A set of elements to match against
+
+Learn for more [documentation](http://github.com/jsvibe/quanter/wiki)
+
+## Selector Supports
+
+### Combinators Supports
 
 |Combinator|Supported|
 |:--------|:--------:|
@@ -77,7 +105,7 @@ Quanter(String expr, DOMNode context, Array results, Array seed);
 |~|✓|
 |` `|✓|
 
-## Pseudos Supports
+### Pseudos Supports
 |Pseudos|Supported|
 |:--------|:--------:|
 :nth-last-of-type(n)|✓|
@@ -168,28 +196,3 @@ Quanter(String expr, DOMNode context, Array results, Array seed);
 :module|✓|
 :ecmascript|✓|
 :json|✓|
-
-Learn for more [documentation](http://github.com/jsvibe/quanter/wiki)
-
-### XPath Selector
-
-The `XPathSelect` method is a specialized function built to handle **full XPath syntax**, offering complete support for:
-
-- Complex queries
-- Nested expressions
-- Axes like `following-sibling`, `ancestor`, `descendant`
-- Functions like `contains()`, `starts-with()`, `text()`, etc.
-
-**Best Use:** When your use case requires powerful and deeply nested element queries using the full capabilities of XPath.
-
-#### Signature and Parameters
-```js
-Quanter.XPathSelect(String expr, DOMNode context, Array results, Array seed);
-```
-
-- `expr`[required] A XPath Expression (comma separated or non-comma separated)
-- `context` [optional] An element, document, or document fragment to use as the context for finding elements.
-- `results` [optional] An optional array to which the matched elements will be added.
-- `seed` [optional] A set of elements to match against
-
-Learn for more [documentation](http://github.com/jsvibe/quanter/wiki)

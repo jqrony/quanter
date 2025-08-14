@@ -6,7 +6,7 @@
   "main": "dist/quanter.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "terser lib/fsmate.js"
+    "build": "terser dist/quanter.js"
   },
   "repository": {
     "type": "git",

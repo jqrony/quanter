@@ -1,5 +1,5 @@
 /**
- * Quanter JavaScript CSS Selector Engine v4.4.0
+ * Quanter JavaScript CSS Selector Engine v4.4.5
  * A lightweight CSS selector engine designed to be easily select DOM-Elements.
  * https://github.com/jsvibe/quanter
  * 
@@ -15,7 +15,7 @@
 
 "use strict";
 
-var version = "4.4.0",
+var version = "4.4.5",
   i,
   support,
   uniqueSort,
@@ -1362,7 +1362,7 @@ Expr = Quanter.selectors = {
       }
     }),
 
-    /* Added version >= 4.4.0 */
+    /* Added version >= 4.4.5 */
     "xpath": markFunction(function(expr) {
       return function(elem) {
         return Quanter.XPathSelect(expr, elem);
@@ -1839,7 +1839,7 @@ Quanter.noConflict = function() {
 if (typeof define === "function" && define.amd) {
   define(function() {
     return Quanter;
-  })
+  });
 }
 
 // Quanter requires that there be a global window in Common-JS like environments

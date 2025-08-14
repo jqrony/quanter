@@ -1,5 +1,9 @@
 # Release Notes
 
+## [v4.4.5](https://github.com/jsvibe/quanter/compare/v4.3.0...v4.4.0) - 15-08-2025
+
+* Update `README.md` file to Improve and Enhance more Readibility and Documentation [@indianmodassir](https://github.com/indianmodassir)
+
 ## [v4.4.0](https://github.com/jsvibe/quanter/compare/v4.3.0...v4.4.0) - 30-07-2025
 
 * Added new pseudo `:dir` matches elements based on the directionality of the text contained in them. [@indianmodassir](https://github.com/indianmodassir)

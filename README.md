@@ -1,11 +1,12 @@
-# Quanter [![npm version](https://img.shields.io/npm/v/quanter?style=flat-square&logo=npm)](https://www.npmjs.com/package/quanter)
+# Quanter
 
 > A Pure-JavaScript, CSS selector engine designed to be easily select DOM-Elements.
 
+[![npm version](https://img.shields.io/npm/v/quanter?logo=npm)](https://www.npmjs.com/package/quanter)
 ![license](https://img.shields.io/github/license/jsvibe/quanter?style=flat-square&color=blue&logo=mit)
-![author](https://img.shields.io/badge/Author-Indian%20Modassir-blue?style=flat-square)
-[![jsDelivr Hits](https://img.shields.io/jsdelivr/npm/hm/quanter?style=flat-square&logo=jsdelivr)](https://www.jsdelivr.com/package/npm/quanter)
-[![downloads month](https://img.shields.io/npm/dm/quanter?style=flat-square)](https://www.npmjs.com/package/quanter)
+![author](https://img.shields.io/badge/Author-Modassir-blue)
+[![jsDelivr Hits](https://img.shields.io/jsdelivr/npm/hm/quanter?logo=jsdelivr)](https://www.jsdelivr.com/package/npm/quanter)
+[![downloads month](https://img.shields.io/npm/dm/quanter)](https://www.npmjs.com/package/quanter)
 
 - [Documentation](http://github.com/jsvibe/quanter/wiki)
 - [Browser support](https://github.com/jsvibe/quanter/wiki/#browsers)

@@ -3,10 +3,11 @@
 > A Pure-JavaScript, CSS selector engine designed to be easily select DOM-Elements.
 
 [![npm version](https://img.shields.io/npm/v/quanter?logo=npm)](https://www.npmjs.com/package/quanter)
-![license](https://img.shields.io/github/license/jsvibe/quanter?style=flat-square&color=blue&logo=mit)
-![author](https://img.shields.io/badge/Author-Modassir-blue)
+[![license](https://img.shields.io/github/license/jsvibe/quanter?style=flat-square&color=blue&logo=mit)](https://github.com/jsvibe/fsmate/blob/main/LICENSE)
+[![author](https://img.shields.io/badge/Author-Modassir-blue)](https://github.com/indianmodassir)
 [![jsDelivr Hits](https://img.shields.io/jsdelivr/npm/hm/quanter?logo=jsdelivr)](https://www.jsdelivr.com/package/npm/quanter)
 [![downloads month](https://img.shields.io/npm/dm/quanter)](https://www.npmjs.com/package/quanter)
+[![Publish Package to npm](https://github.com/jsvibe/fsmate/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/jsvibe/fsmate/actions/workflows/npm-publish.yml)
 
 - [Documentation](http://github.com/jsvibe/quanter/wiki)
 - [Browser support](https://github.com/jsvibe/quanter/wiki/#browsers)
@@ -34,7 +35,7 @@ Below are some of the most common ways to include Quanter.
 ### Browser
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/quanter@4.4.5/dist/quanter.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quanter@4.4.6/dist/quanter.min.js"></script>
 ```
 
 ### Webpack / Browserify / Babel

@@ -1,12 +1,12 @@
 {
   "title": "Quanter",
   "name": "quanter",
-  "version": "4.4.5",
+  "version": "4.4.6",
   "description": "A Pure-JavaScript, CSS selector engine designed to be easily select DOM-Elements.",
   "main": "dist/quanter.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "terser dist/quanter.js"
+    "build": "echo \"No build required\""
   },
   "repository": {
     "type": "git",
@@ -36,8 +36,5 @@
   ],
   "bugs": {
     "url": "https://github.com/jsvibe/quanter/issues"
-  },
-  "devDependencies": {
-    "terser": "^5.30.1"
   }
 }
